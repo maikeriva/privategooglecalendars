@@ -187,6 +187,12 @@
         // now handled by tippy tooltips.
       //},
       eventRender: function(info) {
+
+        console.log(info.event.title, info.event.start);
+
+
+        //console.log(info.event.start.toLocaleString() + " --- " + info.event.start.toString(), info.event);
+
         if (showEventPopup) {
           var texts = ['<span class="pgc-popup-draghandle dashicons dashicons-screenoptions"></span><div class="pgc-popup-row pgc-event-title"><div class="pgc-popup-row-icon"><span></span></div><div class="pgc-popup-row-value">' + info.event.title + '</div></div>'];
 
@@ -274,6 +280,7 @@
                 }
                 items.push(item);
               });
+              console.log("items", items);
               currentAllEvents = items;
               handleCalendarFilter(response.calendars);
             }
@@ -312,13 +319,14 @@
     }
 
     fullCalendar = new FullCalendar.Calendar($calendar, Object.assign({
-      plugins: ['dayGrid', 'list', 'timeGrid'],
+      plugins: ['momentTimezone', 'dayGrid', 'list', 'timeGrid'],
       defaultView: 'dayGridMonth',
       nowIndicator: true,
       columnHeader: true,
       columnHeaderFormat: {
         weekday: 'short'
-      }
+      },
+      timeZone: 'America/New_York'
     }, config));
     fullCalendar.render();
     // For debugging, so we have access to it from within the console.

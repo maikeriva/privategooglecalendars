@@ -190,14 +190,22 @@ function pgc_enqueue_scripts() {
       plugin_dir_url(__FILE__) . 'lib/fullcalendar4/list/main.min.css', ['fullcalendar'], PGC_PLUGIN_VERSION);
   wp_enqueue_style('pgc',
       plugin_dir_url(__FILE__) . 'css/pgc.css', ['fullcalendar_timegrid'], PGC_PLUGIN_VERSION);
-  wp_enqueue_style('tippy-light',
+  wp_enqueue_style('tippy_light',
       plugin_dir_url(__FILE__) . 'lib/tippy/light-border.css', null, PGC_PLUGIN_VERSION);
   wp_enqueue_script('popper',
       plugin_dir_url(__FILE__) . 'lib/popper.min.js', null, PGC_PLUGIN_VERSION, true);
   wp_enqueue_script('tippy',
       plugin_dir_url(__FILE__) . 'lib/tippy/tippy-bundle.iife.min.js', ['popper'], PGC_PLUGIN_VERSION, true);
+  wp_enqueue_script('my_moment',
+      plugin_dir_url(__FILE__) . 'lib/moment/moment.min.js', null, PGC_PLUGIN_VERSION, true);
+  wp_enqueue_script('my_moment_timezone',
+      plugin_dir_url(__FILE__) . 'lib/moment/moment-timezone-with-data.min.js', ['my_moment'], PGC_PLUGIN_VERSION, true);
   wp_enqueue_script('fullcalendar',
-      plugin_dir_url(__FILE__) . 'lib/fullcalendar4/core/main.min.js', null, PGC_PLUGIN_VERSION, true);
+      plugin_dir_url(__FILE__) . 'lib/fullcalendar4/core/main.min.js', ['my_moment_timezone'], PGC_PLUGIN_VERSION, true);
+  wp_enqueue_script('fullcalendar_moment',
+      plugin_dir_url(__FILE__) . 'lib/fullcalendar4/moment/main.min.js', ['fullcalendar'], PGC_PLUGIN_VERSION, true);
+  wp_enqueue_script('fullcalendar_moment_timezone',
+      plugin_dir_url(__FILE__) . 'lib/fullcalendar4/moment-timezone/main.min.js', ['fullcalendar_moment'], PGC_PLUGIN_VERSION, true);
   wp_enqueue_script('fullcalendar_daygrid',
       plugin_dir_url(__FILE__) . 'lib/fullcalendar4/daygrid/main.min.js', ['fullcalendar'], PGC_PLUGIN_VERSION, true);
   wp_enqueue_script('fullcalendar_timegrid',
