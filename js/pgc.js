@@ -68,13 +68,6 @@
     var selectedCalIds = null;
     var allCalendars = null;
 
-    // fullCalendar locales are like this: nl-be OR es
-    // The locale we get from WP are en_US OR en.
-    var locale = 'en-us';
-    if ($calendar.getAttribute('data-locale')) {
-      locale = $calendar.getAttribute('data-locale').toLowerCase().replace("_", "-"); // en-us or en
-    }
-
     // Always present, gets set in PHP file.
     // Note: make sure you use the same defaults as get set in the PHP file!
     var filter = castAttrValue($calendar.getAttribute('data-filter'));
@@ -88,6 +81,14 @@
     var showEventAttachments = castAttrValue($calendar.getAttribute('data-eventattachments'), false);
     var showEventCreator = castAttrValue($calendar.getAttribute('data-eventcreator'), false);
     var showEventCalendarname = castAttrValue($calendar.getAttribute('data-eventcalendarname'), false);
+
+    // fullCalendar locales are like this: nl-be OR es
+    // The locale we get from WP are en_US OR en.
+    var locale = 'en-us';
+    // This one (data-locale) is set by WP and NOT by the user. User can set it in the fullCalendar config.
+    if ($calendar.getAttribute('data-locale')) {
+      locale = $calendar.getAttribute('data-locale').toLowerCase().replace("_", "-"); // en-us or en
+    }
 
     // This can be overridden by shortcode attributes.
     var defaultConfig = {
@@ -105,6 +106,10 @@
       var value = castAttrValue(dataConfig[key]);
       config[underscoreToUpper(key)] = value;
     });
+
+    locale = config.locale;
+
+    moment.locale(locale);
 
     // Users can set specific set of calendars
     // Only in widget set (data-calendarids)
@@ -188,8 +193,8 @@
       //},
       eventRender: function(info) {
 
-        console.log(info.event.title, info.event.start);
-
+        //console.log(info.event.title, info.event.start);
+        //console.log(moment(info.event.start));
 
         //console.log(info.event.start.toLocaleString() + " --- " + info.event.start.toString(), info.event);
 
@@ -200,11 +205,17 @@
           if (info.event.allDay) {
             texts.push("All day</div></div>");
           } else {
-            texts.push(info.event.start.toLocaleTimeString(locale, {
-              timeStyle: "short"
-            }) + " - " + info.event.end.toLocaleTimeString(locale, {
-              timeStyle: "short"
-            }) + "</div></div>");
+            if (config.timeZone) {
+              texts.push(moment.tz(info.event.start, config.timeZone).format("LT")
+                + " - "
+                + moment.tz(info.event.end, config.timeZone).format("LT") + "</div></div>");
+            } else {
+              texts.push(info.event.start.toLocaleTimeString(locale, {
+                timeStyle: "short"
+              }) + " - " + info.event.end.toLocaleTimeString(locale, {
+                timeStyle: "short"
+              }) + "</div></div>");
+            }
           }
           if (showEventDescription && info.event.extendedProps.description) {
            texts.push('<div class="pgc-popup-row pgc-event-description"><div class="pgc-popup-row-icon"><span class="dashicons dashicons-editor-alignleft"></span></div><div class="pgc-popup-row-value">' + info.event.extendedProps.description + '</div></div>');
@@ -325,8 +336,7 @@
       columnHeader: true,
       columnHeaderFormat: {
         weekday: 'short'
-      },
-      timeZone: 'America/New_York'
+      }
     }, config));
     fullCalendar.render();
     // For debugging, so we have access to it from within the console.

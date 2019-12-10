@@ -197,7 +197,7 @@ function pgc_enqueue_scripts() {
   wp_enqueue_script('tippy',
       plugin_dir_url(__FILE__) . 'lib/tippy/tippy-bundle.iife.min.js', ['popper'], PGC_PLUGIN_VERSION, true);
   wp_enqueue_script('my_moment',
-      plugin_dir_url(__FILE__) . 'lib/moment/moment.min.js', null, PGC_PLUGIN_VERSION, true);
+      plugin_dir_url(__FILE__) . 'lib/moment/moment-with-locales.min.js', null, PGC_PLUGIN_VERSION, true);
   wp_enqueue_script('my_moment_timezone',
       plugin_dir_url(__FILE__) . 'lib/moment/moment-timezone-with-data.min.js', ['my_moment'], PGC_PLUGIN_VERSION, true);
   wp_enqueue_script('fullcalendar',
