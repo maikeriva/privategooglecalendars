@@ -166,7 +166,7 @@ function pgc_shortcode($atts = [], $content = null, $tag) {
  */
 add_action('admin_enqueue_scripts', 'pgc_admin_enqueue_scripts');
 function pgc_admin_enqueue_scripts($hook) {
-  if ($hook === 'settings_page_pgc') {
+  if ($hook === 'settings_page_pgc' || $hook === 'widgets.php') {
     wp_enqueue_script('pgc-admin', plugin_dir_url(__FILE__) . 'js/pgc-admin.js');
     wp_enqueue_style('pgc-admin', plugin_dir_url(__FILE__) . 'css/pgc-admin.css');
   }
@@ -1235,7 +1235,9 @@ class Pgc_Calendar_Widget extends WP_Widget {
     $eventcreator = $this->instanceOptionToBooleanString($instance, 'eventcreator', 'false');
     $eventcalendarname = $this->instanceOptionToBooleanString($instance, 'eventcalendarname', 'false');
     $hidepassed = $this->instanceOptionToBooleanString($instance, 'hidepassed', 'false');
+    $hidepasseddays = empty($instance['hidepasseddays']) ? 0 : $instance['hidepasseddays'];
     $hidefuture = $this->instanceOptionToBooleanString($instance, 'hidefuture', 'false');
+    $hidefuturedays = empty($instance['hidefuturedays']) ? 0 : $instance['hidefuturedays'];
     $config = isset($instance['config']) ? $instance['config'] : self::$defaultConfig;
     $thisCalendarids = isset($instance['thiscalendarids']) ? $instance['thiscalendarids'] : [];
 
@@ -1263,8 +1265,8 @@ class Pgc_Calendar_Widget extends WP_Widget {
           data-eventattachments='<?php echo $eventattachments; ?>'
           data-eventcreator='<?php echo $eventcreator; ?>'
           data-eventcalendarname='<?php echo $eventcalendarname; ?>'
-          data-hidepassed='<?php echo $hidepassed; ?>'
-          data-hidefuture='<?php echo $hidefuture; ?>'
+          data-hidepassed='<?php echo $hidepassed === 'true' ? $hidepasseddays : 'false'; ?>'
+          data-hidefuture='<?php echo $hidefuture === 'true' ? $hidefuturedays : 'false'; ?>'
           data-locale='<?php echo get_locale(); ?>'
           class="pgc-calendar"></div>
     </div>
@@ -1285,15 +1287,54 @@ class Pgc_Calendar_Widget extends WP_Widget {
     $eventcreatorValue = isset($instance['eventcreator']) ? $instance['eventcreator'] === 'true' : false;
     $eventcalendarnameValue = isset($instance['eventcalendarname']) ? $instance['eventcalendarname'] === 'true' : false;
     $hidepassedValue = isset($instance['hidepassed']) ? $instance['hidepassed'] === 'true' : false;
+    $hidepasseddaysValue = empty($instance['hidepasseddays']) ? 0 : $instance['hidepasseddays'];
     $hidefutureValue = isset($instance['hidefuture']) ? $instance['hidefuture'] === 'true' : false;
+    $hidefuturedaysValue = empty($instance['hidefuturedays']) ? 0 : $instance['hidefuturedays'];
     $jsonValue = !empty($instance['config']) ? $instance['config'] : self::$defaultConfig;
     $allCalendarIds = get_option('pgc_selected_calendar_ids'); // selected calendar ids
     $calendarListByKey = pgc_get_calendars_by_key($allCalendarIds);
     $thisCalendaridsValue = isset($instance['thiscalendarids']) ? $instance['thiscalendarids'] : [];
 
     $popupCheckboxId = $this->get_field_id('eventpopup');
+    $hidepassedCheckboxId = $this->get_field_id('hidepassed');
+    $hidefutureCheckboxId = $this->get_field_id('hidefuture');
 
     ?>
+
+    <script>
+      window.onPgcPopupCheckboxClick = function(el) {
+        el = el || this;
+        var checked = el.checked;
+        Array.prototype.forEach.call(document.querySelectorAll("input[data-linked-id='" + el.id + "']"), function(input) {
+          if (checked) {
+            input.removeAttribute("disabled");
+          } else {
+            input.setAttribute("disabled", "disabled");
+          }
+        });
+      };
+
+      window.onHidepassedCheckboxClick = function(el) {
+        el = el || this;
+        var input = document.querySelector("label[data-linked-id='" + el.id + "']");
+        if (el.checked) {
+            input.style.visibility = 'visible';
+          } else {
+            input.style.visibility = 'hidden';
+          }
+      };
+
+      window.onHidefutureCheckboxClick = function(el) {
+        el = el || this;
+        var input = document.querySelector("label[data-linked-id='" + el.id + "']");
+        if (el.checked) {
+            input.style.visibility = 'visible';
+          } else {
+            input.style.visibility = 'hidden';
+          }
+      };
+
+    </script>
 
       <p>
       <div><strong>Calendar selection</strong></div>
@@ -1318,20 +1359,28 @@ class Pgc_Calendar_Widget extends WP_Widget {
           value="true" />
         <?php _e('Show calendar filter'); ?></label>
       <br>
-      <label for="<?php echo $this->get_field_id('hidepassed'); ?>">      
+      <label for="<?php echo $hidepassedCheckboxId; ?>">      
       <input type="checkbox"
           <?php checked($hidepassedValue, true, true); ?>
-          id="<?php echo $this->get_field_id('hidepassed'); ?>"
+          id="<?php echo $hidepassedCheckboxId; ?>"
           name="<?php echo $this->get_field_name('hidepassed'); ?>"
+          onclick="window.onHidepassedCheckboxClick(this);"
           value="true" />
         <?php _e('Hide passed events'); ?></label>
+        <label data-linked-id="<?php echo $hidepassedCheckboxId; ?>">more than <input min="0" class="pgc_small_numeric_input" type="number" name="<?php echo $this->get_field_name('hidepasseddays'); ?>"
+          id="<?php echo $this->get_field_id('hidepasseddays'); ?>"
+          value="<?php echo $hidepasseddaysValue; ?>" /> days ago</label>
       <br>
-      <label for="<?php echo $this->get_field_id('hidefuture'); ?>"><input type="checkbox"
+      <label for="<?php echo $hidefutureCheckboxId; ?>"><input type="checkbox"
           <?php checked($hidefutureValue, true, true); ?>
-          id="<?php echo $this->get_field_id('hidefuture'); ?>"
+          id="<?php echo $hidefutureCheckboxId; ?>"
           name="<?php echo $this->get_field_name('hidefuture'); ?>"
+          onclick="window.onHidefutureCheckboxClick(this);"
           value="true" />
         <?php _e('Hide future events'); ?></label>
+        <label data-linked-id="<?php echo $hidefutureCheckboxId; ?>">more than <input min="0" class="pgc_small_numeric_input" type="number" name="<?php echo $this->get_field_name('hidefuturedays'); ?>"
+          id="<?php echo $this->get_field_id('hidefuturedays'); ?>"
+          value="<?php echo $hidefuturedaysValue; ?>" /> from now</label>
       </p>
 
       <p>
@@ -1340,7 +1389,7 @@ class Pgc_Calendar_Widget extends WP_Widget {
           <?php checked($eventpopupValue, true, true); ?>
           id="<?php echo $popupCheckboxId; ?>"
           name="<?php echo $this->get_field_name('eventpopup'); ?>"
-          value="true" />
+          value="true" onclick="window.onPgcPopupCheckboxClick(this);" />
         <?php _e('Show event popup'); ?></label>
       <br>
       <label for="<?php echo $this->get_field_id('eventlink'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
@@ -1418,19 +1467,12 @@ class Pgc_Calendar_Widget extends WP_Widget {
     <script>
       (function($) {
 
-        var onPgcPopupCheckboxClick = function() {
-          var checked = this.checked;
-          Array.prototype.forEach.call(document.querySelectorAll("input[data-linked-id='" + this.id + "']"), function(input) {
-            if (checked) {
-              input.removeAttribute("disabled");
-            } else {
-              input.setAttribute("disabled", "disabled");
-            }
-          });
-        };
+        console.log("TEST");
+        console.log(document.getElementById("<?php echo $popupCheckboxId; ?>"));
 
-        document.getElementById("<?php echo $popupCheckboxId; ?>").addEventListener("click", onPgcPopupCheckboxClick);
-        onPgcPopupCheckboxClick.call(document.getElementById("<?php echo $popupCheckboxId; ?>"));
+        window.onPgcPopupCheckboxClick.call(document.getElementById("<?php echo $popupCheckboxId; ?>"));
+        window.onHidepassedCheckboxClick.call(document.getElementById("<?php echo $hidepassedCheckboxId; ?>"));
+        window.onHidefutureCheckboxClick.call(document.getElementById("<?php echo $hidefutureCheckboxId; ?>"));
 
         // Note that form() is called 2 times in the widget area: ont time closed
         // and one time opened if you have it in your sidebar.
@@ -1526,9 +1568,15 @@ class Pgc_Calendar_Widget extends WP_Widget {
     $instance['hidepassed'] = (!empty($new_instance['hidepassed']))
         ? strip_tags($new_instance['hidepassed'] )
         : '';
+    $instance['hidepasseddays'] = (!empty($new_instance['hidepasseddays']))
+        ? strip_tags($new_instance['hidepasseddays'] )
+        : '0';
     $instance['hidefuture'] = (!empty($new_instance['hidefuture']))
         ? strip_tags($new_instance['hidefuture'] )
         : '';
+    $instance['hidefuturedays'] = (!empty($new_instance['hidefuturedays']))
+        ? strip_tags($new_instance['hidefuturedays'] )
+        : '0';
     return $instance;
   }
   

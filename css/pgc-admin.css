@@ -41,3 +41,7 @@ a.pgc-link {
 .pgc-calendar-filter input[type=checkbox]:checked + label span:before {
   visibility: visible;
 }
+
+.pgc_small_numeric_input {
+  width:60px;
+}
