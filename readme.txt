@@ -58,6 +58,9 @@ wordpress/wp-content/plugins/private-google-calendars/lib/fullcalendar4/timegrid
 
 == Changelog ==
 
+= 20191210 =
+* Moment timezone plugin - you can now set the timezone for each calendar; by default local times are displayed
+
 = 20191209 =
 * Show popup also for weeklist
 

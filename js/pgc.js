@@ -193,11 +193,6 @@
       //},
       eventRender: function(info) {
 
-        //console.log(info.event.title, info.event.start);
-        //console.log(moment(info.event.start));
-
-        //console.log(info.event.start.toLocaleString() + " --- " + info.event.start.toString(), info.event);
-
         if (showEventPopup) {
           var texts = ['<span class="pgc-popup-draghandle dashicons dashicons-screenoptions"></span><div class="pgc-popup-row pgc-event-title"><div class="pgc-popup-row-icon"><span></span></div><div class="pgc-popup-row-value">' + info.event.title + '</div></div>'];
 
@@ -291,7 +286,6 @@
                 }
                 items.push(item);
               });
-              console.log("items", items);
               currentAllEvents = items;
               handleCalendarFilter(response.calendars);
             }
