@@ -93,6 +93,10 @@ tr[data-tippy-content] {
 
 
 /* New loading element */
+.pgc-loading .fc-view-container {
+  opacity:.8;
+}
+
 .pgc-loading .fc-view-container:after,
 .pgc-loading-error .fc-view-container:after {
   position:absolute;

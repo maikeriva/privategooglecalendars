@@ -178,13 +178,21 @@
       setEvents();
     });
 
+    var loadingTimer = null;
+
     // Add things no one can override.
     config = Object.assign(config, {
       loading: function(isLoading, view) {
         if (isLoading) {
-          calendarWrapper.classList.remove("pgc-loading-error");
-          calendarWrapper.classList.add("pgc-loading");
+          loadingTimer = setTimeout(function() {
+            calendarWrapper.classList.remove("pgc-loading-error");
+            calendarWrapper.classList.add("pgc-loading");
+          }, 300);
         } else {
+          if (loadingTimer) {
+            clearTimeout(loadingTimer);
+            loadingTimer = null;
+          }
           calendarWrapper.classList.remove("pgc-loading");
         }
       },
@@ -250,6 +258,8 @@
       },
       events: function(arg, successCcallback, failureCallback) {
 
+        //return;
+
         var start = arg.start;
         var end = arg.end;
         var fStart = dateFormat(start);
@@ -312,15 +322,20 @@
       }
     });
 
-    if (hidePassed || hideFuture) {
+    // Can be true, false, or numeric, even 0 meaning the same as true.
+    if (hidePassed || hideFuture || hidePassed === 0 || hideFuture === 0) {
       config.validRange = {};
     }
 
-    if (hidePassed) {
+    if (hidePassed === true || hidePassed === 0) {
       config.validRange.start = new Date();
+    } else if (hidePassed) {
+      config.validRange.start = moment().subtract(hidePassed, 'days').toDate();
     }
-    if (hideFuture) {
+    if (hideFuture === true || hideFuture === 0) {
       config.validRange.end = new Date();
+    } else if (hideFuture) {
+      config.validRange.end = moment().add(hideFuture, 'days').toDate();
     }
 
     fullCalendar = new FullCalendar.Calendar($calendar, Object.assign({

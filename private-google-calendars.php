@@ -1222,11 +1222,6 @@ class Pgc_Calendar_Widget extends WP_Widget {
   private function instanceOptionToBooleanString($instance, $key, $defaultValue) {
     return isset($instance[$key]) ? $this->toBooleanString($instance[$key]) : $defaultValue;
   }
-
-  private function instanceOptionToBoolean($instance, $key, $defaultValue) {
-    return isset($instance[$key]) ? $this->toBoolean($instance[$key]) : $defaultValue;
-  }
-  
   
   public function widget($args, $instance) {
 
@@ -1280,7 +1275,7 @@ class Pgc_Calendar_Widget extends WP_Widget {
   }
   
   public function form($instance) {
-    $filterValue = $this->instanceOptionToBoolean($instance, 'filter', true);
+    $filterValue = isset($instance['filter']) ? $instance['filter'] === 'true' : true;
     $eventpopupValue = isset($instance['eventpopup']) ? $instance['eventpopup'] === 'true' : true;
     $eventlinkValue = isset($instance['eventlink']) ? $instance['eventlink'] === 'true' : false;
     $eventdescriptionValue = isset($instance['eventdescription']) ? $instance['eventdescription'] === 'true' : false;
@@ -1295,6 +1290,9 @@ class Pgc_Calendar_Widget extends WP_Widget {
     $allCalendarIds = get_option('pgc_selected_calendar_ids'); // selected calendar ids
     $calendarListByKey = pgc_get_calendars_by_key($allCalendarIds);
     $thisCalendaridsValue = isset($instance['thiscalendarids']) ? $instance['thiscalendarids'] : [];
+
+    $popupCheckboxId = $this->get_field_id('eventpopup');
+
     ?>
 
       <p>
@@ -1320,78 +1318,79 @@ class Pgc_Calendar_Widget extends WP_Widget {
           value="true" />
         <?php _e('Show calendar filter'); ?></label>
       <br>
-      <label for="<?php echo $this->get_field_id('eventpopup'); ?>"><input type="checkbox"
-          <?php checked($eventpopupValue, true, true); ?>
-          id="<?php echo $this->get_field_id('eventpopup'); ?>"
-          name="<?php echo $this->get_field_name('eventpopup'); ?>"
-          value="true" />
-        <?php _e('Show event popup'); ?></label>
-      </p>
-
-      <p>
-      <div><strong>Event popup options</strong></div>
-      <label for="<?php echo $this->get_field_id('eventlink'); ?>"><input type="checkbox"
-          <?php checked($eventlinkValue, true, true); ?>
-          id="<?php echo $this->get_field_id('eventlink'); ?>"
-          name="<?php echo $this->get_field_name('eventlink'); ?>"
-          value="true" />
-        <?php _e('Show link to event in popup'); ?></label>
-      <br>
-      <label for="<?php echo $this->get_field_id('eventdescription'); ?>"><input type="checkbox"
-          <?php checked($eventdescriptionValue, true, true); ?>
-          id="<?php echo $this->get_field_id('eventdescription'); ?>"
-          name="<?php echo $this->get_field_name('eventdescription'); ?>"
-          value="true" />
-        <?php _e('Show description in popup'); ?></label>
-      <br>
-      <label for="<?php echo $this->get_field_id('eventlocation'); ?>"><input type="checkbox"
-          <?php checked($eventlocationValue, true, true); ?>
-          id="<?php echo $this->get_field_id('eventlocation'); ?>"
-          name="<?php echo $this->get_field_name('eventlocation'); ?>"
-          value="true" />
-        <?php _e('Show location in popup'); ?></label>
-      <br>
-      <label for="<?php echo $this->get_field_id('eventattachments'); ?>"><input type="checkbox"
-          <?php checked($eventattachmentsValue, true, true); ?>
-          id="<?php echo $this->get_field_id('eventattachments'); ?>"
-          name="<?php echo $this->get_field_name('eventattachments'); ?>"
-          value="true" />
-        <?php _e('Show attachments in popup'); ?></label>
-      <br>
-      <label for="<?php echo $this->get_field_id('eventattendees'); ?>"><input type="checkbox"
-          <?php checked($eventattendeesValue, true, true); ?>
-          id="<?php echo $this->get_field_id('eventattendees'); ?>"
-          name="<?php echo $this->get_field_name('eventattendees'); ?>"
-          value="true" />
-        <?php _e('Show attendees in popup'); ?></label>
-      <br>
-      <label for="<?php echo $this->get_field_id('eventcalendarname'); ?>"><input type="checkbox"
-          <?php checked($eventcalendarnameValue, true, true); ?>
-          id="<?php echo $this->get_field_id('eventcalendarname'); ?>"
-          name="<?php echo $this->get_field_name('eventcalendarname'); ?>"
-          value="true" />
-        <?php _e('Show calendar name in popup'); ?></label>
-      <br>
-      <label for="<?php echo $this->get_field_id('eventcreator'); ?>"><input type="checkbox"
-          <?php checked($eventcreatorValue, true, true); ?>
-          id="<?php echo $this->get_field_id('eventcreator'); ?>"
-          name="<?php echo $this->get_field_name('eventcreator'); ?>"
-          value="true" />
-        <?php _e('Show creator in popup'); ?></label>
-      <br>
-      <label for="<?php echo $this->get_field_id('hidepassed'); ?>"><input type="checkbox"
+      <label for="<?php echo $this->get_field_id('hidepassed'); ?>">      
+      <input type="checkbox"
           <?php checked($hidepassedValue, true, true); ?>
           id="<?php echo $this->get_field_id('hidepassed'); ?>"
           name="<?php echo $this->get_field_name('hidepassed'); ?>"
           value="true" />
         <?php _e('Hide passed events'); ?></label>
-        <br>
+      <br>
       <label for="<?php echo $this->get_field_id('hidefuture'); ?>"><input type="checkbox"
           <?php checked($hidefutureValue, true, true); ?>
           id="<?php echo $this->get_field_id('hidefuture'); ?>"
           name="<?php echo $this->get_field_name('hidefuture'); ?>"
           value="true" />
         <?php _e('Hide future events'); ?></label>
+      </p>
+
+      <p>
+      <div><strong>Event popup options</strong></div>
+      <label for="<?php echo $popupCheckboxId; ?>"><input type="checkbox"
+          <?php checked($eventpopupValue, true, true); ?>
+          id="<?php echo $popupCheckboxId; ?>"
+          name="<?php echo $this->get_field_name('eventpopup'); ?>"
+          value="true" />
+        <?php _e('Show event popup'); ?></label>
+      <br>
+      <label for="<?php echo $this->get_field_id('eventlink'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
+          <?php checked($eventlinkValue, true, true); ?>
+          id="<?php echo $this->get_field_id('eventlink'); ?>"
+          name="<?php echo $this->get_field_name('eventlink'); ?>"
+          value="true" />
+        <?php _e('Show link to event in popup'); ?></label>
+      <br>
+      <label for="<?php echo $this->get_field_id('eventdescription'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
+          <?php checked($eventdescriptionValue, true, true); ?>
+          id="<?php echo $this->get_field_id('eventdescription'); ?>"
+          name="<?php echo $this->get_field_name('eventdescription'); ?>"
+          value="true" />
+        <?php _e('Show description in popup'); ?></label>
+      <br>
+      <label for="<?php echo $this->get_field_id('eventlocation'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
+          <?php checked($eventlocationValue, true, true); ?>
+          id="<?php echo $this->get_field_id('eventlocation'); ?>"
+          name="<?php echo $this->get_field_name('eventlocation'); ?>"
+          value="true" />
+        <?php _e('Show location in popup'); ?></label>
+      <br>
+      <label for="<?php echo $this->get_field_id('eventattachments'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
+          <?php checked($eventattachmentsValue, true, true); ?>
+          id="<?php echo $this->get_field_id('eventattachments'); ?>"
+          name="<?php echo $this->get_field_name('eventattachments'); ?>"
+          value="true" />
+        <?php _e('Show attachments in popup'); ?></label>
+      <br>
+      <label for="<?php echo $this->get_field_id('eventattendees'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
+          <?php checked($eventattendeesValue, true, true); ?>
+          id="<?php echo $this->get_field_id('eventattendees'); ?>"
+          name="<?php echo $this->get_field_name('eventattendees'); ?>"
+          value="true" />
+        <?php _e('Show attendees in popup'); ?></label>
+      <br>
+      <label for="<?php echo $this->get_field_id('eventcalendarname'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
+          <?php checked($eventcalendarnameValue, true, true); ?>
+          id="<?php echo $this->get_field_id('eventcalendarname'); ?>"
+          name="<?php echo $this->get_field_name('eventcalendarname'); ?>"
+          value="true" />
+        <?php _e('Show calendar name in popup'); ?></label>
+      <br>
+      <label for="<?php echo $this->get_field_id('eventcreator'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
+          <?php checked($eventcreatorValue, true, true); ?>
+          id="<?php echo $this->get_field_id('eventcreator'); ?>"
+          name="<?php echo $this->get_field_name('eventcreator'); ?>"
+          value="true" />
+        <?php _e('Show creator in popup'); ?></label>
       </p>
     
     <?php
@@ -1418,6 +1417,21 @@ class Pgc_Calendar_Widget extends WP_Widget {
     </p>
     <script>
       (function($) {
+
+        var onPgcPopupCheckboxClick = function() {
+          var checked = this.checked;
+          Array.prototype.forEach.call(document.querySelectorAll("input[data-linked-id='" + this.id + "']"), function(input) {
+            if (checked) {
+              input.removeAttribute("disabled");
+            } else {
+              input.setAttribute("disabled", "disabled");
+            }
+          });
+        };
+
+        document.getElementById("<?php echo $popupCheckboxId; ?>").addEventListener("click", onPgcPopupCheckboxClick);
+        onPgcPopupCheckboxClick.call(document.getElementById("<?php echo $popupCheckboxId; ?>"));
+
         // Note that form() is called 2 times in the widget area: ont time closed
         // and one time opened if you have it in your sidebar.
         var $area = $("#<?php echo $this->get_field_id('config'); ?>");
