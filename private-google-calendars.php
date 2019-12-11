@@ -3,14 +3,14 @@
 Plugin Name: Private Google Calendars
 Description: Display multiple private Google Calendars
 Plugin URI: http://blog.michielvaneerd.nl/private-google-calendars/
-Version: 20191210
+Version: 20191211
 Author: Michiel van Eerd
 Author URI: http://michielvaneerd.nl/
 License: GPL2
 */
 
 // Always set this to the same version as "Version" in header! Used for query parameters added to style and scripts.
-define('PGC_PLUGIN_VERSION', '20191210');
+define('PGC_PLUGIN_VERSION', '20191211');
 
 if (!class_exists('PGC_GoogleClient')) {
   require_once(plugin_dir_path(__FILE__) . 'lib/google-client.php');
@@ -167,8 +167,8 @@ function pgc_shortcode($atts = [], $content = null, $tag) {
 add_action('admin_enqueue_scripts', 'pgc_admin_enqueue_scripts');
 function pgc_admin_enqueue_scripts($hook) {
   if ($hook === 'settings_page_pgc' || $hook === 'widgets.php') {
-    wp_enqueue_script('pgc-admin', plugin_dir_url(__FILE__) . 'js/pgc-admin.js');
-    wp_enqueue_style('pgc-admin', plugin_dir_url(__FILE__) . 'css/pgc-admin.css');
+    wp_enqueue_script('pgc-admin', plugin_dir_url(__FILE__) . 'js/pgc-admin.js', null, PGC_PLUGIN_VERSION);
+    wp_enqueue_style('pgc-admin', plugin_dir_url(__FILE__) . 'css/pgc-admin.css', null, PGC_PLUGIN_VERSION);
   }
 }
 
@@ -294,15 +294,6 @@ function pgc_ajax_get_calendar() {
     $transientItems = !empty($cacheTime) ? get_transient($transientKey) : false;
 
     $calendarListByKey = pgc_get_calendars_by_key($thisCalendarids);
-
-    //$calendarListByKey = [];
-    //foreach ($calendarList as $cal) {
-    //  if (array_search($cal['id'], $calendarIds) === false) continue;
-    //  $calendarListByKey[$cal['id']] = [
-    //    'summary' => $cal['summary'],
-    //    'backgroundColor' => $cal['backgroundColor']
-    //  ];
-    //}
 
     if ($transientItems !== false) {
       // We have a transient for this request, so serve it.
@@ -1466,9 +1457,6 @@ class Pgc_Calendar_Widget extends WP_Widget {
     </p>
     <script>
       (function($) {
-
-        console.log("TEST");
-        console.log(document.getElementById("<?php echo $popupCheckboxId; ?>"));
 
         window.onPgcPopupCheckboxClick.call(document.getElementById("<?php echo $popupCheckboxId; ?>"));
         window.onHidepassedCheckboxClick.call(document.getElementById("<?php echo $hidepassedCheckboxId; ?>"));

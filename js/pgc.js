@@ -258,8 +258,6 @@
       },
       events: function(arg, successCcallback, failureCallback) {
 
-        //return;
-
         var start = arg.start;
         var end = arg.end;
         var fStart = dateFormat(start);
@@ -288,11 +286,6 @@
                 if (!(item.calId in calendars)) return;
                 if (!getConfigBackgroundColor(config)) {
                   item.backgroundColor = calendars[item.calId].backgroundColor;
-                }
-                //item.start = new Date(item.start);
-                //item.end = new Date(item.end);
-                if (item.allDay) {
-
                 }
                 items.push(item);
               });

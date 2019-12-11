@@ -58,6 +58,10 @@ wordpress/wp-content/plugins/private-google-calendars/lib/fullcalendar4/timegrid
 
 == Changelog ==
 
+= 20191211 =
+* Hidepassed and hidefuture accept number of days as well
+* Loading spinner active after timeout, so it's not visible immediately
+
 = 20191210 =
 * Moment timezone plugin - you can now set the timezone for each calendar; by default local times are displayed
 
