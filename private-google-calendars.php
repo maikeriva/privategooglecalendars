@@ -48,7 +48,28 @@ define('PGC_ENQUEUE_ACTION_PRIORITY', 11);
 add_action('init', 'pgc_shortcodes_init');
 function pgc_shortcodes_init() {
   add_shortcode('pgc', 'pgc_shortcode');
+  pgc_register_block();
 }
+
+function pgc_register_block() {
+  $asset_file = include(plugin_dir_path(__FILE__) . 'build/index.asset.php');
+  
+  wp_register_script(
+    'pgc-plugin',
+    plugins_url('build/index.js', __FILE__),
+    $asset_file['dependencies'],
+    PGC_PLUGIN_VERSION
+  );
+
+  register_block_type('pgc-plugin/calendar', array(
+    'editor_script' => 'pgc-plugin',
+  ));
+
+  $selectedCalendars = get_option('pgc_selected_calendar_ids', []);
+  wp_add_inline_script('pgc-plugin', 'window.pgc_selected_calendars=' . json_encode($selectedCalendars) . ';', 'before');
+
+}
+
 function pgc_shortcode($atts = [], $content = null, $tag) {
 
   // When we have no attributes, $atts is an empty string
