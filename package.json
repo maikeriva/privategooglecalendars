@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/michielvaneerd/privategooglecalendars/issues"
   },
-  "homepage": "https://github.com/michielvaneerd/privategooglecalendars#readme"
+  "homepage": "https://github.com/michielvaneerd/privategooglecalendars#readme",
+  "devDependencies": {
+    "@wordpress/scripts": "^6.1.0"
+  }
 }
