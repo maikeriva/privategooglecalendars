@@ -24,12 +24,14 @@ services:
       - "8000:80"
     restart: always
     volumes:
+      # Because the Wordpress Docker image creates an anonymous volume, we bind it here, so it doesn't get created everytime we do a docker-compose up.
+      - wp:/var/www/html
       # This only mounts the current working dir to the WP plugin dir.
       # This means that all other WP files are copied everytime after docker-compose down.
       - ./:/var/www/html/wp-content/plugins/private-google-calendars:delegated
       # Remove dev dirs from the mount.
-      - private_google_calendars_src:/var/www/html/wp-content/plugins/private-google-calendars/src/
-      - private_google_calendars_node_modules:/var/www/html/wp-content/plugins/private-google-calendars/node_modules/
+      - src:/var/www/html/wp-content/plugins/private-google-calendars/src/
+      - node_modules:/var/www/html/wp-content/plugins/private-google-calendars/node_modules/
     environment:
       WORDPRESS_DB_HOST: db:3306
       WORDPRESS_DB_USER: wordpress
@@ -39,3 +41,4 @@ volumes:
   db_data: {}
   private_google_calendars_src: {}
   private_google_calendars_node_modules: {}
+  private_google_calendars_wp: {}
