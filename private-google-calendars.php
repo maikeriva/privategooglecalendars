@@ -52,6 +52,7 @@ function pgc_shortcodes_init() {
 }
 
 function pgc_register_block() {
+  
   $asset_file = include(plugin_dir_path(__FILE__) . 'build/index.asset.php');
   
   wp_register_script(
@@ -65,7 +66,15 @@ function pgc_register_block() {
     'editor_script' => 'pgc-plugin',
   ));
 
-  $selectedCalendars = get_option('pgc_selected_calendar_ids', []);
+  // Make the selected calendars available for the block.
+  $selectedCalendarIds = get_option('pgc_selected_calendar_ids', []);
+  $calendarList = getDecoded('pgc_calendarlist', []);
+  $selectedCalendars = [];
+  foreach ($calendarList as $calendar) {
+    if (in_array($calendar['id'], $selectedCalendarIds)) {
+      $selectedCalendars[$calendar['id']] = $calendar;
+    }
+  }
   wp_add_inline_script('pgc-plugin', 'window.pgc_selected_calendars=' . json_encode($selectedCalendars) . ';', 'before');
 
 }
