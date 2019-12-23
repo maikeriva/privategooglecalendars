@@ -39,6 +39,6 @@ services:
       WORDPRESS_DB_NAME: wordpress
 volumes:
   db_data: {}
-  private_google_calendars_src: {}
-  private_google_calendars_node_modules: {}
-  private_google_calendars_wp: {}
+  src: {}
+  node_modules: {}
+  wp: {}
