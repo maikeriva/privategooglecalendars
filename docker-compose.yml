@@ -26,7 +26,7 @@ services:
     volumes:
       # This only mounts the current working dir to the WP plugin dir.
       # This means that all other WP files are copied everytime after docker-compose down.
-      - ./:/var/www/html/wp-content/plugins/private-google-calendars
+      - ./:/var/www/html/wp-content/plugins/private-google-calendars:delegated
       # Remove dev dirs from the mount.
       - private_google_calendars_src:/var/www/html/wp-content/plugins/private-google-calendars/src/
       - private_google_calendars_node_modules:/var/www/html/wp-content/plugins/private-google-calendars/node_modules/
