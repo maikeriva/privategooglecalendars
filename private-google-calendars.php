@@ -56,14 +56,20 @@ function pgc_register_block() {
   $asset_file = include(plugin_dir_path(__FILE__) . 'build/index.asset.php');
   
   wp_register_script(
-    'pgc-plugin',
+    'pgc-plugin-script',
     plugins_url('build/index.js', __FILE__),
     $asset_file['dependencies'],
     PGC_PLUGIN_VERSION
   );
 
+  wp_register_style('pgc-plugin-style',
+    plugins_url('css/block-style.css', __FILE__),
+    ['wp-edit-blocks'],
+    PGC_PLUGIN_VERSION);
+
   register_block_type('pgc-plugin/calendar', array(
-    'editor_script' => 'pgc-plugin',
+    'editor_script' => 'pgc-plugin-script',
+    'editor_style' => 'pgc-plugin-style'
   ));
 
   // Make the selected calendars available for the block.
@@ -75,7 +81,7 @@ function pgc_register_block() {
       $selectedCalendars[$calendar['id']] = $calendar;
     }
   }
-  wp_add_inline_script('pgc-plugin', 'window.pgc_selected_calendars=' . json_encode($selectedCalendars) . ';', 'before');
+  wp_add_inline_script('pgc-plugin-script', 'window.pgc_selected_calendars=' . json_encode($selectedCalendars) . ';', 'before');
 
 }
 

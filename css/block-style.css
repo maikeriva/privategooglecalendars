@@ -1,0 +1,8 @@
+.components-base-control.pgc-sidebar-row {
+    margin-bottom:6px !important;
+}
+
+.has-error textarea {
+    background-color: red;
+    color: white;
+}
