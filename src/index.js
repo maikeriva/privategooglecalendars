@@ -10,6 +10,14 @@ const defaultFullcalendarConfig = JSON.stringify({
         right: "dayGridMonth,timeGridWeek,listWeek"
     }
 });
+
+function getNewUpdatedObject(obj, objName, key, newValue) {
+    const copy = Object.assign({}, obj);
+    copy[key] = newValue;
+    const newObj = {};
+    newObj[objName] = copy;
+    return newObj;
+}
  
 registerBlockType('pgc-plugin/calendar', {
     title: 'Private Google Calendars Block',
@@ -66,33 +74,19 @@ registerBlockType('pgc-plugin/calendar', {
         const fullcalendarconfig = props.attributes.fullcalendarconfig;
 
         const onCalendarSelectionChange = function(newValue) {
-            var copy = Object.assign({}, calendars);
-            copy[this] = newValue;
-            props.setAttributes({calendars: copy});
+            props.setAttributes(getNewUpdatedObject(calendars, "calendars", this, newValue));
         };
 
         const onCalendarConfigChange = function(newValue) {
-            var copy = Object.assign({}, config);
-            copy[this] = newValue;
-            props.setAttributes({config: copy});
+            props.setAttributes(getNewUpdatedObject(config, "config", this, newValue));
         };
 
         const onHideoptionsChange = function(newValue) {
-            var copy = Object.assign({}, hideoptions);
-            copy[this] = newValue;
-            props.setAttributes({hideoptions: copy});
-        };
-
-        const onDaysChange = function(newValue) {
-            var copy = Object.assign({}, hideoptions);
-            copy[this] = newValue;
-            props.setAttributes({hideoptions: copy});
+            props.setAttributes(getNewUpdatedObject(hideoptions, "hideoptions", this, newValue));
         };
 
         const onFullCalendarConfigChange = function(newValue) {
             setHasValidFullCalendarConfigValue(hasValidFullCalendarConfigValueCheck(newValue));
-            //var copy = Object.assign({}, fullcalendarconfig);
-            //copy.fullcalendarconfig = newValue;
             props.setAttributes({fullcalendarconfig: newValue});
         };
 
@@ -122,12 +116,12 @@ registerBlockType('pgc-plugin/calendar', {
         const hidePassedDays = hideoptions.hidepassed
             ? 
             <TextControl label={`...more than ${hideoptions.hidepasseddays} days ago`} type="number" min={0}
-                value={hideoptions.hidepasseddays} onChange={onDaysChange.bind('hidepasseddays')} />
+                value={hideoptions.hidepasseddays} onChange={onHideoptionsChange.bind('hidepasseddays')} />
             : null;
         const hideFutureDays = hideoptions.hidefuture
             ?
             <TextControl label={`...more than ${hideoptions.hidefuturedays} days from now`} type="number" min={0}
-                value={hideoptions.hidefuturedays} onChange={onDaysChange.bind('hidefuturedays')} />
+                value={hideoptions.hidefuturedays} onChange={onHideoptionsChange.bind('hidefuturedays')} />
             : null;
 
         return (
@@ -174,13 +168,19 @@ registerBlockType('pgc-plugin/calendar', {
         let hasValidConfig = false;
         try {
             hasValidConfig = fullcalendarconfig && Object.keys(JSON.parse(fullcalendarconfig)).length > 0;
-            console.log(hasValidConfig);
         } catch (ex) {
             console.log(ex);
         }
         if (hasValidConfig) {
             attrsArray.push(`fullcalendarconfig='${fullcalendarconfig}'`);
         }
+        Object.keys(config).forEach(function(key) {
+            attrsArray.push(key + '="' + (config[key] ? 'true' : 'false') + '"');
+        });
+
+        attrsArray.push(`hidepassed="${hideoptions.hidepassed ? hideoptions.hidepasseddays : 'false'}"`);
+        attrsArray.push(`hidefuture="${hideoptions.hidefuture ? hideoptions.hidefuturedays : 'false'}"`);
+        
         if (Object.keys(props.attributes.calendars).length) {
             const calendarids = [];
             Object.keys(props.attributes.calendars).forEach(function(id) {
@@ -195,16 +195,8 @@ registerBlockType('pgc-plugin/calendar', {
                 attrsArray.push(key + '="' + attrs[key] + '"');
             });
 
-            Object.keys(config).forEach(function(key) {
-                attrsArray.push(key + '="' + (config[key] ? 'true' : 'false') + '"');
-            });
-
-            attrsArray.push(`hidepassed="${hideoptions.hidepassed ? hideoptions.hidepasseddays : 'false'}"`);
-            attrsArray.push(`hidefuture="${hideoptions.hidefuture ? hideoptions.hidefuturedays : 'false'}"`);
-
-
-
         }
+
         return <p>[pgc {attrsArray.join(" ")}]</p>
     },
 } );
