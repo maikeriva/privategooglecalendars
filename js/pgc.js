@@ -115,6 +115,7 @@
     // Only in widget set (data-calendarids)
     var thisCalendarids = $calendar.getAttribute('data-calendarids') ? JSON.parse($calendar.getAttribute('data-calendarids')) : [];
     // Only in shortcode
+    // TODO: with new release this can be deleted I think.
     if ("calendarids" in config) {
       thisCalendarids = config.calendarids.split(",").map(function(item) {
         return item.replace(" ", "");

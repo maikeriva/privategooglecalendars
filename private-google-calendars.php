@@ -122,6 +122,7 @@ function pgc_shortcode($atts = [], $content = null, $tag) {
   $userEventAttachments = 'false';
   $userEventCreator = 'false';
   $userEventCalendarname = 'false';
+  $calendarIds = '';
   // Get all non-fullcalendar known properties
   foreach ($atts as $key => $value) {
     if ($key === 'filter') {
@@ -168,33 +169,48 @@ function pgc_shortcode($atts = [], $content = null, $tag) {
       $userEventCalendarname = $value;
       continue;
     }
-    // Fullcalendar properties that get passed to fullCalendar instance.
-    $parts = explode('-', $key);
-    $partsCount = count($parts);
-    if ($partsCount > 1) {
-      $currentUserConfigLayer = &$userConfig;
-      for ($i = 0; $i < $partsCount; $i++) {
-        $part = $parts[$i];
-        if ($i + 1 === $partsCount) {
-          if ($value === 'true') {
-            $value = true;
-          } elseif ($value === 'false') {
-            $value = $value;
-          }
-          $currentUserConfigLayer[$part] = $value;
-        } else {
-          if (!array_key_exists($part, $currentUserConfigLayer)) {
-            $currentUserConfigLayer[$part] = [];
-          }
-          $currentUserConfigLayer = &$currentUserConfigLayer[$part];
-        }
-      }
-    } else {
-      $userConfig[$key] = $value;
+    if ($key === 'calendarids' && !empty($value)) {
+      $calendarIds = $value; // comma separated string
+      continue;
     }
+    if ($key === 'fullcalendarconfig') {
+      // A JSON string that we can directly send to FullCalendar
+      $userConfig = json_decode($value, true);
+    } else {
+      // Fullcalendar properties that get passed to fullCalendar instance.
+      $parts = explode('-', $key);
+      $partsCount = count($parts);
+      if ($partsCount > 1) {
+        $currentUserConfigLayer = &$userConfig;
+        for ($i = 0; $i < $partsCount; $i++) {
+          $part = $parts[$i];
+          if ($i + 1 === $partsCount) {
+            if ($value === 'true') {
+              $value = true;
+            } elseif ($value === 'false') {
+              $value = $value;
+            }
+            $currentUserConfigLayer[$part] = $value;
+          } else {
+            if (!array_key_exists($part, $currentUserConfigLayer)) {
+              $currentUserConfigLayer[$part] = [];
+            }
+            $currentUserConfigLayer = &$currentUserConfigLayer[$part];
+          }
+        }
+      } else {
+        $userConfig[$key] = $value;
+      }
+    }
+    
   }
 
-  return '<div class="pgc-calendar-wrapper pgc-calendar-page"><div class="pgc-calendar-filter"></div><div data-filter=\'' . $userFilter . '\' data-eventpopup=\'' . $userEventPopup . '\' data-eventlink=\'' . $userEventLink . '\' data-eventdescription=\'' . $userEventDescription . '\' data-eventlocation=\'' . $userEventLocation . '\' data-eventattachments=\'' . $userEventAttachments . '\' data-eventattendees=\'' . $userEventAttendees . '\' data-eventcreator=\'' . $userEventCreator . '\' data-eventcalendarname=\'' . $userEventCalendarname . '\' data-hidefuture=\'' . $userHideFuture . '\' data-hidepassed=\'' . $userHidePassed . '\' data-config=\'' . json_encode($userConfig) . '\' data-locale="' . get_locale() . '" class="pgc-calendar"></div></div>';
+  $dataCalendarIds = '';
+  if (!empty($calendarIds)) {
+    $dataCalendarIds = 'data-calendarids=\'' . json_encode(explode(',', $calendarIds)) . '\'';
+  }
+
+  return '<div class="pgc-calendar-wrapper pgc-calendar-page"><div class="pgc-calendar-filter"></div><div ' . $dataCalendarIds . ' data-filter=\'' . $userFilter . '\' data-eventpopup=\'' . $userEventPopup . '\' data-eventlink=\'' . $userEventLink . '\' data-eventdescription=\'' . $userEventDescription . '\' data-eventlocation=\'' . $userEventLocation . '\' data-eventattachments=\'' . $userEventAttachments . '\' data-eventattendees=\'' . $userEventAttendees . '\' data-eventcreator=\'' . $userEventCreator . '\' data-eventcalendarname=\'' . $userEventCalendarname . '\' data-hidefuture=\'' . $userHideFuture . '\' data-hidepassed=\'' . $userHidePassed . '\' data-config=\'' . json_encode($userConfig) . '\' data-locale="' . get_locale() . '" class="pgc-calendar"></div></div>';
 }
 
 /**

@@ -2,6 +2,14 @@ import { registerBlockType } from '@wordpress/blocks';
 import { InspectorControls } from '@wordpress/block-editor';
 import { Fragment, useState } from '@wordpress/element';
 import { CheckboxControl, PanelBody, TextControl, TextareaControl } from '@wordpress/components';
+
+const defaultFullcalendarConfig = JSON.stringify({
+    header: {
+        left: "prev,next today",
+        center: "title",
+        right: "dayGridMonth,timeGridWeek,listWeek"
+    }
+});
  
 registerBlockType('pgc-plugin/calendar', {
     title: 'Private Google Calendars Block',
@@ -16,10 +24,6 @@ registerBlockType('pgc-plugin/calendar', {
             type: "object",
             default: {
                 filter: true,
-                hidefuture: false,
-                hidefuturedays: 0,
-                hidepassed: false,
-                hidepasseddays: 0,
                 eventpopup: false,
                 eventlink: false,
                 eventdescription: false,
@@ -27,8 +31,20 @@ registerBlockType('pgc-plugin/calendar', {
                 eventattendees: false,
                 eventattachments: false,
                 eventcreator: false,
-                eventcalendarname: false,
-                fullcalendarconfig: null
+                eventcalendarname: false
+            }
+        },
+        fullcalendarconfig: {
+            type: "string",
+            default: defaultFullcalendarConfig
+        },
+        hideoptions: {
+            type: "object",
+            default: {
+                hidefuture: false,
+                hidefuturedays: 0,
+                hidepassed: false,
+                hidepasseddays: 0,
             }
         }
     },
@@ -42,10 +58,12 @@ registerBlockType('pgc-plugin/calendar', {
             }
         };
 
-        const [hasValidFullCalendarConfigValue, setHasValidFullCalendarConfigValue] = useState(hasValidFullCalendarConfigValueCheck(props.attributes.config.fullcalendarconfig));
+        const [hasValidFullCalendarConfigValue, setHasValidFullCalendarConfigValue] = useState(hasValidFullCalendarConfigValueCheck(props.attributes.fullcalendarconfig));
 
         const calendars = props.attributes.calendars;
         const config = props.attributes.config;
+        const hideoptions = props.attributes.hideoptions;
+        const fullcalendarconfig = props.attributes.fullcalendarconfig;
 
         const onCalendarSelectionChange = function(newValue) {
             var copy = Object.assign({}, calendars);
@@ -59,17 +77,23 @@ registerBlockType('pgc-plugin/calendar', {
             props.setAttributes({config: copy});
         };
 
-        const onDaysChange = function(newValue) {
-            var copy = Object.assign({}, config);
+        const onHideoptionsChange = function(newValue) {
+            var copy = Object.assign({}, hideoptions);
             copy[this] = newValue;
-            props.setAttributes({config: copy});
+            props.setAttributes({hideoptions: copy});
+        };
+
+        const onDaysChange = function(newValue) {
+            var copy = Object.assign({}, hideoptions);
+            copy[this] = newValue;
+            props.setAttributes({hideoptions: copy});
         };
 
         const onFullCalendarConfigChange = function(newValue) {
             setHasValidFullCalendarConfigValue(hasValidFullCalendarConfigValueCheck(newValue));
-            var copy = Object.assign({}, config);
-            copy.fullcalendarconfig = newValue;
-            props.setAttributes({config: copy});
+            //var copy = Object.assign({}, fullcalendarconfig);
+            //copy.fullcalendarconfig = newValue;
+            props.setAttributes({fullcalendarconfig: newValue});
         };
 
         //console.log(window.pgc_selected_calendars);
@@ -95,15 +119,15 @@ registerBlockType('pgc-plugin/calendar', {
                 label={item[1]} checked={config[item[0]]} />;
         });
 
-        const hidePassedDays = config.hidepassed
+        const hidePassedDays = hideoptions.hidepassed
             ? 
-            <TextControl label={`...more than ${config.hidepasseddays} days ago`} type="number" min={0}
-                value={config.hidepasseddays} onChange={onDaysChange.bind('hidepasseddays')} />
+            <TextControl label={`...more than ${hideoptions.hidepasseddays} days ago`} type="number" min={0}
+                value={hideoptions.hidepasseddays} onChange={onDaysChange.bind('hidepasseddays')} />
             : null;
-        const hideFutureDays = config.hidefuture
+        const hideFutureDays = hideoptions.hidefuture
             ?
-            <TextControl label={`...more than ${config.hidefuturedays} days from now`} type="number" min={0}
-                value={config.hidefuturedays} onChange={onDaysChange.bind('hidefuturedays')} />
+            <TextControl label={`...more than ${hideoptions.hidefuturedays} days from now`} type="number" min={0}
+                value={hideoptions.hidefuturedays} onChange={onDaysChange.bind('hidefuturedays')} />
             : null;
 
         return (
@@ -119,18 +143,22 @@ registerBlockType('pgc-plugin/calendar', {
                         initialOpen={true}>
                         <CheckboxControl className="pgc-sidebar-row" onChange={onCalendarConfigChange.bind('filter')}
                             label="Show calendar filter" checked={config.filter} />
-                        <CheckboxControl className="pgc-sidebar-row" onChange={onCalendarConfigChange.bind('hidepassed')}
-                            label="Hide passed events..." checked={config.hidepassed} />
+                        <CheckboxControl className="pgc-sidebar-row" onChange={onHideoptionsChange.bind('hidepassed')}
+                            label="Hide passed events..." checked={hideoptions.hidepassed} />
                         {hidePassedDays}
-                        <CheckboxControl className="pgc-sidebar-row" onChange={onCalendarConfigChange.bind('hidefuture')}
-                            label="Hide future events..." checked={config.hidefuture} />
+                        <CheckboxControl className="pgc-sidebar-row" onChange={onHideoptionsChange.bind('hidefuture')}
+                            label="Hide future events..." checked={hideoptions.hidefuture} />
                         {hideFutureDays}
-                        <TextareaControl className={hasValidFullCalendarConfigValue ? "" : "has-error"} label="FullCalendar config" help={hasValidFullCalendarConfigValue ? "JSON" : "Enter valid JSON"} value={config.fullcalendarconfig} onChange={onFullCalendarConfigChange} />
                     </PanelBody>
                     <PanelBody
                         title="Popup options"
                         initialOpen={true}>
                         {eventPopupList}
+                    </PanelBody>
+                    <PanelBody
+                        title="FullCalendar options"
+                        initialOpen={false}>
+                        <TextareaControl className={hasValidFullCalendarConfigValue ? "" : "has-error"} label="See https://fullcalendar.io/ for valid options" help={hasValidFullCalendarConfigValue ? "" : "Invalid JSON"} value={fullcalendarconfig} placeHolder={defaultFullcalendarConfig} onChange={onFullCalendarConfigChange} />
                     </PanelBody>
                 </InspectorControls>
                 <div>Private Google Calendars Block</div>
@@ -141,6 +169,18 @@ registerBlockType('pgc-plugin/calendar', {
         const attrs = {};
         const attrsArray = [];
         const config = props.attributes.config;
+        const hideoptions = props.attributes.hideoptions;
+        const fullcalendarconfig = props.attributes.fullcalendarconfig;
+        let hasValidConfig = false;
+        try {
+            hasValidConfig = fullcalendarconfig && Object.keys(JSON.parse(fullcalendarconfig)).length > 0;
+            console.log(hasValidConfig);
+        } catch (ex) {
+            console.log(ex);
+        }
+        if (hasValidConfig) {
+            attrsArray.push(`fullcalendarconfig='${fullcalendarconfig}'`);
+        }
         if (Object.keys(props.attributes.calendars).length) {
             const calendarids = [];
             Object.keys(props.attributes.calendars).forEach(function(id) {
@@ -156,17 +196,14 @@ registerBlockType('pgc-plugin/calendar', {
             });
 
             Object.keys(config).forEach(function(key) {
-                if (key.substr(0, 4) === "hide") {
-                    return;
-                }
                 attrsArray.push(key + '="' + (config[key] ? 'true' : 'false') + '"');
             });
 
-            // hide logic
-            //if (config.hidepassed) {
-            attrsArray.push(`hidepassed="${config.hidepassed ? config.hidepasseddays : 'false'}"`);
-            attrsArray.push(`hidefuture="${config.hidefuture ? config.hidefuturedays : 'false'}"`);
-            //}
+            attrsArray.push(`hidepassed="${hideoptions.hidepassed ? hideoptions.hidepasseddays : 'false'}"`);
+            attrsArray.push(`hidefuture="${hideoptions.hidefuture ? hideoptions.hidefuturedays : 'false'}"`);
+
+
+
         }
         return <p>[pgc {attrsArray.join(" ")}]</p>
     },
