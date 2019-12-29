@@ -6,3 +6,7 @@
     background-color: red;
     color: white;
 }
+
+.pgc-fullcalendarconfigarea textarea {
+    font-family: monospace;
+}

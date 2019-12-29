@@ -9,7 +9,7 @@ const defaultFullcalendarConfig = JSON.stringify({
         center: "title",
         right: "dayGridMonth,timeGridWeek,listWeek"
     }
-});
+}, null, 2);
 
 function getNewUpdatedObject(obj, objName, key, newValue) {
     const copy = Object.assign({}, obj);
@@ -20,8 +20,8 @@ function getNewUpdatedObject(obj, objName, key, newValue) {
 }
  
 registerBlockType('pgc-plugin/calendar', {
-    title: 'Private Google Calendars Block',
-    icon: 'universal-access-alt',
+    title: 'Private Google Calendars',
+    icon: 'calendar',
     category: 'widgets',
     attributes: {
         calendars: {
@@ -69,6 +69,10 @@ registerBlockType('pgc-plugin/calendar', {
         const [hasValidFullCalendarConfigValue, setHasValidFullCalendarConfigValue] = useState(hasValidFullCalendarConfigValueCheck(props.attributes.fullcalendarconfig));
 
         const calendars = props.attributes.calendars;
+        let selectedCalendarCount = 0;
+        Object.keys(calendars).forEach(function(key) {
+            if (calendars[key]) selectedCalendarCount += 1;
+        });
         const config = props.attributes.config;
         const hideoptions = props.attributes.hideoptions;
         const fullcalendarconfig = props.attributes.fullcalendarconfig;
@@ -88,6 +92,20 @@ registerBlockType('pgc-plugin/calendar', {
         const onFullCalendarConfigChange = function(newValue) {
             setHasValidFullCalendarConfigValue(hasValidFullCalendarConfigValueCheck(newValue));
             props.setAttributes({fullcalendarconfig: newValue});
+        };
+
+        const onAreaKeyDown = function(e) {
+            if (e.keyCode == 9) {
+                e.preventDefault();
+                const area = e.target;
+                const start = area.selectionStart;
+                const content = area.value.substring(0, start) + "  " + area.value.substring(area.selectionEnd);
+                onFullCalendarConfigChange(content);
+                let t = setTimeout(() => {
+                    clearTimeout(t);
+                    area.selectionEnd = start + 2;
+                }, 0);
+            }
         };
 
         //console.log(window.pgc_selected_calendars);
@@ -128,7 +146,7 @@ registerBlockType('pgc-plugin/calendar', {
             <Fragment>
                 <InspectorControls>    
                     <PanelBody
-                        title="Calendars"
+                        title={"Selected Google calendars (" + (selectedCalendarCount === 0 ? "All" : selectedCalendarCount) + ")"}
                         initialOpen={true}>
                         {calendarList}
                     </PanelBody>
@@ -145,17 +163,13 @@ registerBlockType('pgc-plugin/calendar', {
                         {hideFutureDays}
                     </PanelBody>
                     <PanelBody
-                        title="Popup options"
+                        title={"Popup options (" + (config.eventpopup ? "Show" : "Hide") + ")"}
                         initialOpen={true}>
                         {eventPopupList}
                     </PanelBody>
-                    <PanelBody
-                        title="FullCalendar options"
-                        initialOpen={false}>
-                        <TextareaControl className={hasValidFullCalendarConfigValue ? "" : "has-error"} label="See https://fullcalendar.io/ for valid options" help={hasValidFullCalendarConfigValue ? "" : "Invalid JSON"} value={fullcalendarconfig} placeHolder={defaultFullcalendarConfig} onChange={onFullCalendarConfigChange} />
-                    </PanelBody>
                 </InspectorControls>
                 <div>Private Google Calendars Block</div>
+                <TextareaControl rows={10} onKeyDown={onAreaKeyDown} className={"pgc-fullcalendarconfigarea " + (hasValidFullCalendarConfigValue ? "" : "has-error")} help="See https://fullcalendar.io/ for valid options" value={fullcalendarconfig} placeHolder={defaultFullcalendarConfig} onChange={onFullCalendarConfigChange} />
             </Fragment>
         );
     },
