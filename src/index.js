@@ -1,6 +1,6 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { InspectorControls } from '@wordpress/block-editor';
-import { Fragment, useState } from '@wordpress/element';
+import { Fragment, useState, useEffect } from '@wordpress/element';
 import { CheckboxControl, PanelBody, TextControl, TextareaControl } from '@wordpress/components';
 
 const defaultFullcalendarConfig = JSON.stringify({
@@ -17,6 +17,14 @@ function getNewUpdatedObject(obj, objName, key, newValue) {
     const newObj = {};
     newObj[objName] = copy;
     return newObj;
+}
+
+function hasValidFullCalendarConfigValueCheck(value) {
+    try {
+        return value === "" || Object.keys(JSON.parse(value)).length > 0;
+    } catch (ex) {
+        return false;
+    }
 }
  
 registerBlockType('pgc-plugin/calendar', {
@@ -44,7 +52,7 @@ registerBlockType('pgc-plugin/calendar', {
         },
         fullcalendarconfig: {
             type: "string",
-            default: defaultFullcalendarConfig
+            default: ""
         },
         hideoptions: {
             type: "object",
@@ -58,15 +66,9 @@ registerBlockType('pgc-plugin/calendar', {
     },
     edit(props) {
 
-        const hasValidFullCalendarConfigValueCheck = function(value) {
-            try {
-                return value === null || value === "" || Object.keys(JSON.parse(value)).length > 0;
-            } catch (ex) {
-                return false;
-            }
-        };
-
-        const [hasValidFullCalendarConfigValue, setHasValidFullCalendarConfigValue] = useState(hasValidFullCalendarConfigValueCheck(props.attributes.fullcalendarconfig));
+        const [hasValidFullCalendarConfigValue, setHasValidFullCalendarConfigValue]
+            = useState(hasValidFullCalendarConfigValueCheck(props.attributes.fullcalendarconfig));
+        const [showConfigArea, setShowConfigArea] = useState(props.attributes.fullcalendarconfig);
 
         const calendars = props.attributes.calendars;
         let selectedCalendarCount = 0;
@@ -91,7 +93,7 @@ registerBlockType('pgc-plugin/calendar', {
 
         const onFullCalendarConfigChange = function(newValue) {
             setHasValidFullCalendarConfigValue(hasValidFullCalendarConfigValueCheck(newValue));
-            props.setAttributes({fullcalendarconfig: newValue});
+            props.setAttributes({fullcalendarconfig: newValue === "" ? "" : newValue});
         };
 
         const onAreaKeyDown = function(e) {
@@ -142,6 +144,35 @@ registerBlockType('pgc-plugin/calendar', {
                 value={hideoptions.hidefuturedays} onChange={onHideoptionsChange.bind('hidefuturedays')} />
             : null;
 
+        useEffect(() => {
+            const unsubscribe = wp.data.subscribe(function () {
+                if (wp.data.select("core/editor")) {
+                    const isSavingPost = wp.data.select('core/editor').isSavingPost();
+                    const isAutosavingPost = wp.data.select('core/editor').isAutosavingPost();
+                    if (isSavingPost && !isAutosavingPost) {
+                        if (!hasValidFullCalendarConfigValue) {
+                            // Infinite loop when directly called, don't know why.
+                            let t = setTimeout(function() {
+                                clearTimeout(t);
+                                wp.data.dispatch("core/notices").createWarningNotice("Malformed JSON, this calendar will probably not display correctly");
+                            }, 0);
+                            unsubscribe();
+                        }
+                    }
+                }
+            });
+            return unsubscribe;
+        });
+
+        const fullCalendarConfigArea = showConfigArea ? (
+            <Fragment>
+                <TextareaControl rows={10} onKeyDown={onAreaKeyDown} className={"pgc-fullcalendarconfigarea " + (hasValidFullCalendarConfigValue ? "" : "has-error")}
+                    value={fullcalendarconfig}
+                    placeHolder={defaultFullcalendarConfig} onChange={onFullCalendarConfigChange} />
+                <div className="pgc-copy-link"><a href="#" onClick={(e) => {e.preventDefault(); onFullCalendarConfigChange(defaultFullcalendarConfig)}}>Copy default FullCalendar config</a></div>
+            </Fragment>
+         ) : null;
+
         return (
             <Fragment>
                 <InspectorControls>    
@@ -155,6 +186,8 @@ registerBlockType('pgc-plugin/calendar', {
                         initialOpen={true}>
                         <CheckboxControl className="pgc-sidebar-row" onChange={onCalendarConfigChange.bind('filter')}
                             label="Show calendar filter" checked={config.filter} />
+                        <CheckboxControl className="pgc-sidebar-row" onChange={setShowConfigArea}
+                            label="Edit FullCalendar config" checked={showConfigArea} />
                         <CheckboxControl className="pgc-sidebar-row" onChange={onHideoptionsChange.bind('hidepassed')}
                             label="Hide passed events..." checked={hideoptions.hidepassed} />
                         {hidePassedDays}
@@ -169,7 +202,7 @@ registerBlockType('pgc-plugin/calendar', {
                     </PanelBody>
                 </InspectorControls>
                 <div>Private Google Calendars Block</div>
-                <TextareaControl rows={10} onKeyDown={onAreaKeyDown} className={"pgc-fullcalendarconfigarea " + (hasValidFullCalendarConfigValue ? "" : "has-error")} help="See https://fullcalendar.io/ for valid options" value={fullcalendarconfig} placeHolder={defaultFullcalendarConfig} onChange={onFullCalendarConfigChange} />
+                {fullCalendarConfigArea}
             </Fragment>
         );
     },

@@ -10,3 +10,9 @@
 .pgc-fullcalendarconfigarea textarea {
     font-family: monospace;
 }
+
+.pgc-copy-link {
+    font-size: initial;
+    margin-top: -16px;
+    text-align: right;
+}
