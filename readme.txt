@@ -58,6 +58,9 @@ wordpress/wp-content/plugins/private-google-calendars/lib/fullcalendar4/timegrid
 
 == Changelog ==
 
+= 20200102 =
+* Gutenberg block implemented (you can use this instead of the shortcode)
+
 = 20191211 =
 * Hidepassed and hidefuture accept number of days as well
 * Loading spinner active after timeout, so it's not visible immediately
