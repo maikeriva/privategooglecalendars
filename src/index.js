@@ -1,7 +1,7 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { InspectorControls } from '@wordpress/block-editor';
 import { Fragment, useState, useEffect } from '@wordpress/element';
-import { CheckboxControl, PanelBody, TextControl, TextareaControl } from '@wordpress/components';
+import { CheckboxControl, PanelBody, TextControl, TextareaControl, Modal } from '@wordpress/components';
 
 const defaultFullcalendarConfig = JSON.stringify({
     header: {
@@ -26,6 +26,18 @@ function hasValidFullCalendarConfigValueCheck(value) {
         return false;
     }
 }
+
+const MyInfoModal = function(props) {
+    return (
+        <Modal
+            title="FullCalendar config"
+            onRequestClose={ props.onClose }>
+            <p>Copy the default FullCalendar config if you want to change it. This is the configuration object that you can set as the second argument in the <code>FullCalendar.Calendar</code> constructor.</p>
+            <p>See the <a target="_blank" href="https://fullcalendar.io/docs#toc">FullCalendar documentation</a> for available configuration options.</p>
+
+        </Modal>
+    );
+};
  
 registerBlockType('pgc-plugin/calendar', {
     title: 'Private Google Calendars',
@@ -69,6 +81,7 @@ registerBlockType('pgc-plugin/calendar', {
         const [hasValidFullCalendarConfigValue, setHasValidFullCalendarConfigValue]
             = useState(hasValidFullCalendarConfigValueCheck(props.attributes.fullcalendarconfig));
         const [showConfigArea, setShowConfigArea] = useState(props.attributes.fullcalendarconfig);
+        const [showInfoModal, setShowInfoModal] = useState(false);
 
         const calendars = props.attributes.calendars;
         let selectedCalendarCount = 0;
@@ -110,15 +123,14 @@ registerBlockType('pgc-plugin/calendar', {
             }
         };
 
-        //console.log(window.pgc_selected_calendars);
         // TODO: calendar color
+        console.log(window.pgc_selected_calendars);
         const calendarList = Object.keys(window.pgc_selected_calendars).map((id) => {
             const calendar = window.pgc_selected_calendars[id];
-            return <CheckboxControl className="pgc-sidebar-row" onChange={onCalendarSelectionChange.bind(id)}
+            return <CheckboxControl style={{backgroundColor: calendar.backgroundColor}} className="pgc-sidebar-row" onChange={onCalendarSelectionChange.bind(id)}
                 label={calendar.summary} checked={(id in calendars) && calendars[id]} />
         });
 
-        // TODO: locale?
         const eventPopupList = [
             ["eventpopup", "Show event popup"],
             ["eventlink", "Show event link"],
@@ -166,12 +178,19 @@ registerBlockType('pgc-plugin/calendar', {
 
         const fullCalendarConfigArea = showConfigArea ? (
             <Fragment>
-                <TextareaControl rows={10} onKeyDown={onAreaKeyDown} className={"pgc-fullcalendarconfigarea " + (hasValidFullCalendarConfigValue ? "" : "has-error")}
+                <TextareaControl rows={10} onKeyDown={onAreaKeyDown}
+                    className={"pgc-fullcalendarconfigarea " + (hasValidFullCalendarConfigValue ? "" : "has-error")}
                     value={fullcalendarconfig}
+                    help={!hasValidFullCalendarConfigValue ? "Malformed JSON" : ""}
                     placeHolder={defaultFullcalendarConfig} onChange={onFullCalendarConfigChange} />
-                <div className="pgc-copy-link"><a href="#" onClick={(e) => {e.preventDefault(); onFullCalendarConfigChange(defaultFullcalendarConfig)}}>Copy default FullCalendar config</a></div>
+                <div className="pgc-copy-link">
+                    <a href="#" onClick={(e) => {e.preventDefault(); onFullCalendarConfigChange(defaultFullcalendarConfig)}}>Copy default FullCalendar config</a>
+                    <span onClick={() => setShowInfoModal(true)} class="dashicons dashicons-editor-help"></span>
+                </div>
             </Fragment>
-         ) : null;
+        ) : null;
+
+        const infoModal = showInfoModal ? MyInfoModal({onClose: () => {setShowInfoModal(false)}}) : null;
 
         return (
             <Fragment>
@@ -203,6 +222,7 @@ registerBlockType('pgc-plugin/calendar', {
                 </InspectorControls>
                 <div>Private Google Calendars Block</div>
                 {fullCalendarConfigArea}
+                {infoModal}
             </Fragment>
         );
     },
@@ -216,7 +236,7 @@ registerBlockType('pgc-plugin/calendar', {
         try {
             hasValidConfig = fullcalendarconfig && Object.keys(JSON.parse(fullcalendarconfig)).length > 0;
         } catch (ex) {
-            console.log(ex);
+            //console.log(ex);
         }
         if (hasValidConfig) {
             attrsArray.push(`fullcalendarconfig='${fullcalendarconfig}'`);
