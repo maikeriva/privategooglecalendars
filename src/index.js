@@ -123,8 +123,6 @@ registerBlockType('pgc-plugin/calendar', {
             }
         };
 
-        // TODO: calendar color
-        console.log(window.pgc_selected_calendars);
         const calendarList = Object.keys(window.pgc_selected_calendars).map((id) => {
             const calendar = window.pgc_selected_calendars[id];
             return <CheckboxControl style={{backgroundColor: calendar.backgroundColor}} className="pgc-sidebar-row" onChange={onCalendarSelectionChange.bind(id)}
