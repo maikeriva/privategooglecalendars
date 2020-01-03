@@ -1,7 +1,8 @@
 ---
 layout: default
+title: Private Google Calendars Wordpress Plugin
 ---
 
-# Test 123
+Private Google Calendars is a Wordpress plugin that can display your private (and public) Google Calendars.
 
-This is just a test...
+See https://blog.michielvaneerd.nl/private-google-calendars/ for many examples.
