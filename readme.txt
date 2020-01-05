@@ -18,7 +18,7 @@ This plugin can display multiple private Google calendars with a shortcode or as
 
 * Access to _private_ calendars by using OAuth2.
 * Adjustable caching - this can greatly improve the performance.
-* It uses the [FullCalendar](https://fullcalendar.io/) library to show the calendar and can be fully customized with shorcode attributes and in the widget settings.
+* It uses the [FullCalendar](https://fullcalendar.io/) library to show the calendar and can be fully customized within the Gutenberg block, shorcode attributes and the widget settings.
 * Calendar filtering.
 
 == Installation ==
