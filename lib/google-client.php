@@ -304,6 +304,21 @@ class PGC_GoogleCalendarClient {
     return $parsed;
   }
 
+  public function getEventsPublic($calendarId, $params, $apiKey) {
+    $url = str_replace('$calendarId', urlencode($calendarId), self::GOOGLE_CALENDAR_EVENTS_URI);
+    // https://developers.google.com/google-apps/calendar/performance#partial-response
+    $params['fields'] = "items(summary,description,start,end,htmlLink,creator,location,attendees,attachments)";
+    $params['key'] = $apiKey;
+    $result = PGC_GoogleClient_Request::doRequest(
+      $url,
+      $params,
+      'GET'
+    );
+    
+    $parsed = !empty($result['items']) ? $result['items'] : [];
+    return $parsed;
+  }
+
   public function getPrimaryEvents($params) {
     return $this->getEvents('primary', $params);
   }

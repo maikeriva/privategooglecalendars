@@ -1,7 +1,7 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { InspectorControls } from '@wordpress/block-editor';
 import { Fragment, useState, useEffect } from '@wordpress/element';
-import { CheckboxControl, PanelBody, TextControl, TextareaControl, Modal } from '@wordpress/components';
+import { CheckboxControl, PanelBody, TextControl, TextareaControl, Modal, HorizontalRule } from '@wordpress/components';
 
 const defaultFullcalendarConfig = JSON.stringify({
     header: {
@@ -51,6 +51,7 @@ registerBlockType('pgc-plugin/calendar', {
         config: {
             type: "object",
             default: {
+                public: false,              
                 filter: true,
                 eventpopup: false,
                 eventlink: false,
@@ -63,6 +64,10 @@ registerBlockType('pgc-plugin/calendar', {
             }
         },
         fullcalendarconfig: {
+            type: "string",
+            default: ""
+        },
+        publiccalendarids: {
             type: "string",
             default: ""
         },
@@ -91,6 +96,8 @@ registerBlockType('pgc-plugin/calendar', {
         const config = props.attributes.config;
         const hideoptions = props.attributes.hideoptions;
         const fullcalendarconfig = props.attributes.fullcalendarconfig;
+        const publiccalendarids = props.attributes.publiccalendarids;
+        const isPublic = props.attributes.config.public;
 
         const onCalendarSelectionChange = function(newValue) {
             props.setAttributes(getNewUpdatedObject(calendars, "calendars", this, newValue));
@@ -107,6 +114,14 @@ registerBlockType('pgc-plugin/calendar', {
         const onFullCalendarConfigChange = function(newValue) {
             setHasValidFullCalendarConfigValue(hasValidFullCalendarConfigValueCheck(newValue));
             props.setAttributes({fullcalendarconfig: newValue === "" ? "" : newValue});
+        };
+
+        const onPublicChange = function(newValue) {
+            onCalendarConfigChange.call('public', newValue);
+        };
+
+        const onPublicCalendarIdsChange = function(newValue) {
+            props.setAttributes({publiccalendarids: newValue});
         };
 
         const onAreaKeyDown = function(e) {
@@ -188,6 +203,12 @@ registerBlockType('pgc-plugin/calendar', {
             </Fragment>
         ) : null;
 
+        const publicCalendarIdsInput = isPublic ? (
+            <Fragment>
+                <TextControl label="Comma separated list of public calendar IDs" value={publiccalendarids} onChange={onPublicCalendarIdsChange} />
+            </Fragment>
+        ) : null
+
         const infoModal = showInfoModal ? MyInfoModal({onClose: () => {setShowInfoModal(false)}}) : null;
 
         return (
@@ -197,6 +218,9 @@ registerBlockType('pgc-plugin/calendar', {
                         title={"Selected Google calendars (" + (selectedCalendarCount === 0 ? "All" : selectedCalendarCount) + ")"}
                         initialOpen={true}>
                         {calendarList}
+                        <HorizontalRule />
+                        <CheckboxControl className="pgc-sidebar-row" onChange={onPublicChange}
+                            label="Public calendar(s)" checked={isPublic} />
                     </PanelBody>
                     <PanelBody
                         title="Calendar options"
@@ -220,6 +244,7 @@ registerBlockType('pgc-plugin/calendar', {
                 </InspectorControls>
                 <div>Private Google Calendars Block</div>
                 {fullCalendarConfigArea}
+                {publicCalendarIdsInput}
                 {infoModal}
             </Fragment>
         );
@@ -246,21 +271,28 @@ registerBlockType('pgc-plugin/calendar', {
         attrsArray.push(`hidepassed="${hideoptions.hidepassed ? hideoptions.hidepasseddays : 'false'}"`);
         attrsArray.push(`hidefuture="${hideoptions.hidefuture ? hideoptions.hidefuturedays : 'false'}"`);
         
-        if (Object.keys(props.attributes.calendars).length) {
-            const calendarids = [];
-            Object.keys(props.attributes.calendars).forEach(function(id) {
-                if ((id in props.attributes.calendars) && props.attributes.calendars[id]) {
-                    calendarids.push(id);
+        if (props.attributes.config.public) {
+            attrs.calendarids = props.attributes.publiccalendarids;
+        } else {
+            if (Object.keys(props.attributes.calendars).length) {
+                const calendarids = [];
+                Object.keys(props.attributes.calendars).forEach(function(id) {
+                    if ((id in props.attributes.calendars) && props.attributes.calendars[id]) {
+                        calendarids.push(id);
+                    }
+                });
+                if (calendarids.length) {
+                    attrs.calendarids = calendarids.join(",");
                 }
-            });
-            if (calendarids.length) {
-                attrs.calendarids = calendarids.join(",");
+    
             }
-            Object.keys(attrs).forEach(function(key) {
-                attrsArray.push(key + '="' + attrs[key] + '"');
-            });
-
         }
+
+        Object.keys(attrs).forEach(function(key) {
+            attrsArray.push(key + '="' + attrs[key] + '"');
+        });
+
+        console.log(attrsArray);
 
         return <p>[pgc {attrsArray.join(" ")}]</p>
     },
