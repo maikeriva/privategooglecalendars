@@ -140,7 +140,7 @@ registerBlockType('pgc-plugin/calendar', {
 
         const calendarList = Object.keys(window.pgc_selected_calendars).map((id) => {
             const calendar = window.pgc_selected_calendars[id];
-            return <CheckboxControl style={{backgroundColor: calendar.backgroundColor}} className="pgc-sidebar-row" onChange={onCalendarSelectionChange.bind(id)}
+            return <CheckboxControl disabled={isPublic} style={{backgroundColor: calendar.backgroundColor}} className="pgc-sidebar-row" onChange={onCalendarSelectionChange.bind(id)}
                 label={calendar.summary} checked={(id in calendars) && calendars[id]} />
         });
 
@@ -183,6 +183,13 @@ registerBlockType('pgc-plugin/calendar', {
                             }, 0);
                             unsubscribe();
                         }
+                        if (isPublic && !publiccalendarids) {
+                            let t = setTimeout(function() {
+                                clearTimeout(t);
+                                wp.data.dispatch("core/notices").createWarningNotice("Enter 1 or more public calendar IDs");
+                            }, 0);
+                            unsubscribe();
+                        }
                     }
                 }
             });
@@ -195,6 +202,7 @@ registerBlockType('pgc-plugin/calendar', {
                     className={"pgc-fullcalendarconfigarea " + (hasValidFullCalendarConfigValue ? "" : "has-error")}
                     value={fullcalendarconfig}
                     help={!hasValidFullCalendarConfigValue ? "Malformed JSON" : ""}
+                    label="FullCalendar config"
                     placeHolder={defaultFullcalendarConfig} onChange={onFullCalendarConfigChange} />
                 <div className="pgc-copy-link">
                     <a href="#" onClick={(e) => {e.preventDefault(); onFullCalendarConfigChange(defaultFullcalendarConfig)}}>Copy default FullCalendar config</a>
@@ -215,7 +223,7 @@ registerBlockType('pgc-plugin/calendar', {
             <Fragment>
                 <InspectorControls>    
                     <PanelBody
-                        title={"Selected Google calendars (" + (selectedCalendarCount === 0 ? "All" : selectedCalendarCount) + ")"}
+                        title={"Selected calendars (" + (isPublic ? "Public" : (selectedCalendarCount === 0 ? "All" : selectedCalendarCount)) + ")"}
                         initialOpen={true}>
                         {calendarList}
                         <HorizontalRule />
