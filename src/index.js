@@ -145,6 +145,9 @@ registerBlockType('pgc-plugin/calendar', {
                 return <CheckboxControl disabled={isPublic} style={{backgroundColor: calendar.backgroundColor}} className="pgc-sidebar-row" onChange={onCalendarSelectionChange.bind(id)}
                     label={calendar.summary} checked={(id in calendars) && calendars[id]} />
             });
+            if (!calendarList.length) {
+                calendarList.push(<em>No private calendars</em>);
+            }
             calendarList.push(<HorizontalRule />);
         }
 

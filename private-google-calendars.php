@@ -511,7 +511,7 @@ function pgc_settings_page_html() {
     $clientSecret = pgc_get_valid_client_secret($clientSecretError);
 
     if (empty($clientSecret) || !empty($clientSecretError)) {
-      echo '<h2>' . __('Step 1: Upload client secret') . '</h2>';
+      //echo '<h2>' . __('Step 1: Upload client secret') . '</h2>';
       pgc_show_settings();
     } else {
       // Valid Client Secret, check access and refresh tokens
@@ -519,32 +519,35 @@ function pgc_settings_page_html() {
       $refreshToken = get_option('pgc_refresh_token');
 
       if (empty($accessToken)) {
+        echo '<h2>Setting up private calendar access...</h2>';
         echo '<h2 style="opacity:1; color:green;">' . __('Step 1: Upload client secret') . ' &#10003;</h2>';
         echo '<h2>' . __('Step 2: Authorize') . '</h2>';
         ?>
-        <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
+        <form style="display:inline" method="post" action="<?php echo admin_url('admin-post.php'); ?>">
           <input type="hidden" name="action" value="pgc_authorize">
-          <?php submit_button(__('Authorize')); ?>
+          <?php submit_button(__('Authorize'), 'primary', 'pgc_authorize', false); ?>
+        </form>
+        <form style="display:inline" method="post" action="<?php echo admin_url('admin-post.php'); ?>">
+          <input type="hidden" name="action" value="pgc_remove_private">
+          <?php submit_button(__('Stop'), '', 'pgc_remove_private', false); ?>
         </form>
         <?php
       } else {
         // CalendarList
         $okay = get_option('pgc_selected_calendar_ids') ? '&#10003;' : '';
-        echo '<h2 style="opacity:1; color:green;">' . __('Step 1: Upload client secret') . ' &#10003;</h2>';
-        echo '<h2 style="opacity:1; color:green;">' . __('Step 2: Authorize') . ' &#10003;</h2>';
+        // echo '<h2 style="opacity:1; color:green;">' . __('Step 1: Upload client secret') . ' &#10003;</h2>';
+        // echo '<h2 style="opacity:1; color:green;">' . __('Step 2: Authorize') . ' &#10003;</h2>';
         if (get_option('pgc_selected_calendar_ids')) {
-          echo '<h2 style="opacity:1; color:green;">' . __('Step 3: Select calendars') . ' &#10003;</h2>';
+          //echo '<h2 style="opacity:1; color:green;">' . __('Step 3: Select calendars') . ' &#10003;</h2>';
         } else {
-          echo '<h2>' . __('Step 3: Select calendars') . '</h2>';
+          //echo '<h2>' . __('Step 3: Select calendars') . '</h2>';
         }
-        echo '<p>' . __('Select the calendars you want to display.') . '</p>';
+        //echo '<p>' . __('Select the calendars you want to display.') . '</p>';
         pgc_show_settings();
       }
     }
 
   ?>
-
-    <hr />
 
     <?php pgc_show_tools(); ?>
 
@@ -660,14 +663,14 @@ function pgc_show_tools() {
   $accessToken = getDecoded('pgc_access_token');
   $refreshToken = get_option('pgc_refresh_token');
 
-  ?><h1><?php _e('Tools'); ?></h1><?php
-
   if (empty($clientSecretError) && !empty($accessToken) && !empty($refreshToken)) {
+
+    ?><h1><?php _e('Tools'); ?></h1><?php
   
   ?>
 
   <h2><?php _e('Update calendars'); ?></h2>
-  <p><?php _e('Use this when you add or remove calendars.'); ?></p>
+  <p><?php _e('Use this when you add or remove calendars in your Google account.'); ?></p>
       <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
         <input type="hidden" name="action" value="pgc_calendarlist">
         <?php submit_button(__('Update calendars'), 'small', 'submit-calendarlist', false); ?>
@@ -701,20 +704,22 @@ function pgc_show_tools() {
   
 
     <h2><?php _e('Revoke access'); ?></h2>
-    <p><?php _e('Revoke this plugins access to your calendars.'); ?></p>
+    <p><?php _e('Revoke this plugins access to your private calendars.'); ?></p>
 <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
   <input type="hidden" name="action" value="pgc_revoke">
   <?php submit_button(__('Revoke access'), 'small', 'submit-revoke', false); ?>
 </form>
-    
-  <?php } ?>
-    
+
 <h2><?php _e('Remove plugin data'); ?></h2>
 <p><?php printf(_('Removes all saved plugin data.<br>If you have authorized this plugin access to your calendars, manually revoke access on the Google <a href="%s" target="__blank">Permissions</a> page.'), 'https://myaccount.google.com/permissions'); ?></p>
 <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
   <input type="hidden" name="action" value="pgc_remove">
   <?php submit_button(__('Remove plugin data'), 'small', 'submit-remove', false); ?>
 </form>
+    
+  <?php } ?>
+    
+
       
   
 
@@ -783,12 +788,18 @@ function pgc_admin_post_verify() {
   }
 }
 
+add_action('admin_post_pgc_remove_private', function() {
+  pgc_delete_plugin_data('private');
+  pgc_add_notice(PGC_NOTICES_REMOVE_SUCCESS, 'success', true);
+  exit;
+});
+
 /**
  * Admin post action to delete all plugin data.
  */
 add_action('admin_post_pgc_remove', 'pgc_admin_post_remove');
 function pgc_admin_post_remove() {
-  pgc_delete_plugin_data();
+  pgc_delete_plugin_data('all');
   pgc_add_notice(PGC_NOTICES_REMOVE_SUCCESS, 'success', true);
   exit;
 }
@@ -813,7 +824,7 @@ function pgc_admin_post_revoke() {
     }
     $client->revoke();
     // Clear access and refresh tokens
-    pgc_delete_plugin_data();
+    pgc_delete_plugin_data('private');
     pgc_add_notice(PGC_NOTICES_REVOKE_SUCCESS, 'success', true);
     exit;
   } catch (Exception $ex) {
@@ -860,7 +871,7 @@ function pgc_uninstall() {
     // Too bad...
   } finally {
     // Clear all plugin data
-    pgc_delete_plugin_data();
+    pgc_delete_plugin_data('all');
   }
 }
 
@@ -876,22 +887,28 @@ function pgc_delete_calendar_cache() {
 /**
  * Helper function to delete all plugin options.
  */
-function pgc_delete_options() {
-  delete_option('pgc_access_token');
-  delete_option('pgc_refresh_token');
-  delete_option('pgc_selected_calendar_ids');
-  delete_option('pgc_calendarlist');
-  delete_option('pgc_client_secret');
-  // TODO: delere api key!
-  delete_option('pgc_cache_time');
+function pgc_delete_options($which) { // which = all, public, private
+  if ($which === 'all' || $which === 'private') {
+    delete_option('pgc_access_token');
+    delete_option('pgc_refresh_token');
+    delete_option('pgc_selected_calendar_ids');
+    delete_option('pgc_calendarlist');
+    delete_option('pgc_client_secret');  
+  }
+  if ($which === 'all' || $which === 'public') {
+    delete_option('pgc_api_key');
+  }
+  if ($which === 'all') {
+    delete_option('pgc_cache_time');
+  }
 }
 
 /**
  * Helper function to delete all plugin data.
  */
-function pgc_delete_plugin_data() {
+function pgc_delete_plugin_data($which = 'all') {
   pgc_delete_calendar_cache();
-  pgc_delete_options();
+  pgc_delete_options($which);
 }
 
 /**
@@ -969,6 +986,28 @@ function pgc_settings_init() {
 
   $accessToken = getDecoded('pgc_access_token');
 
+    add_settings_section(
+      'pgc_settings_section_always',
+      'General settings',
+      'pgc_settings_empty_cb', // leeg
+      'pgc'); // page, slug
+
+      add_settings_section(
+        'pgc_settings_section_public',
+        'Public calendar settings',
+        function() {
+          ?><p>Access to public calendars require an API key.</p><?php
+        }, // leeg
+        'pgc'); // page, slug
+
+      add_settings_section(
+          'pgc_settings_section',
+          'Private calendar settings',
+          function() {
+            ?><p>Access to private calendars requires a JSON secret.</p><?php
+          }, // leeg
+          'pgc'); // page
+
   register_setting('pgc', 'pgc_api_key', [
     'show_in_rest' => false,
     //'sanitize_callback' => 'pgc_validate_client_secret_input'
@@ -976,6 +1015,39 @@ function pgc_settings_init() {
     register_setting('pgc', 'pgc_cache_time', [
       'show_in_rest' => false
     ]);
+
+    
+  
+  // TODO: move to separate section.
+  // Idea is that user can enter a public calendar ID inside shortcode, gutenberg block or widget and select "public" for it.
+  // That way every user can display their own public calendars.
+  // Alternative could be that the admin adds these allowed public calendars inside the admin backend.
+  add_settings_field(
+    'pgc_api_key',
+    '<label for="pgc_api_key">API key</label>',
+    function() {
+        $setting = get_option('pgc_api_key');
+        ?>
+        <input id="pgc_api_key" type="text" name="pgc_api_key" class="regular-text" value="<?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?>">
+        <p class="description">If you only want to display public calendars, an API key is all you need.</p>
+        <?php
+    },
+    'pgc',
+    'pgc_settings_section_public'
+  );
+
+  add_settings_field(
+    'pgc_settings_cache_time',
+    __('Cache time in minutes'),
+    function() {
+      $cacheTime = get_option('pgc_cache_time');
+      ?>
+        <input type="number" name="pgc_cache_time" id="pgc_cache_time" value="<?php echo esc_attr($cacheTime); ?>" />
+        <p><em>Set to 0 to disable cache.</em></p>
+      <?php
+    },
+    'pgc',
+    'pgc_settings_section_always');
 
   if (empty($clientSecret) || !empty($clientSecretError)) {
     // Make the options we use with register_settings not autoloaded.
@@ -993,12 +1065,6 @@ function pgc_settings_init() {
       ]);
     }
   }
-  
-  add_settings_section(
-    'pgc_settings_section',
-    '',
-    'pgc_settings_section_cb',
-    'pgc');
     
     if (empty($clientSecret) || !empty($clientSecretError)) {
       add_settings_field(
@@ -1018,33 +1084,7 @@ function pgc_settings_init() {
         'pgc_settings_section');
 
     
-  }
-
-  // TODO: move to separate section.
-  // Idea is that user can enter a public calendar ID inside shortcode, gutenberg block or widget and select "public" for it.
-  // That way every user can display their own public calendars.
-  // Alternative could be that the admin adds these allowed public calendars inside the admin backend.
-  add_settings_field(
-    'pgc_api_key',
-    '<label for="pgc_api_key">API key</label>',
-    function() {
-        $setting = get_option('pgc_api_key');
-        ?>
-        <input id="pgc_api_key" type="text" name="pgc_api_key" class="regular-text" value="<?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?>">
-        <p class="description">If you only want to display public calendars, an API key is all you need.</p>
-        <?php
-    },
-    'pgc',
-    'pgc_settings_section'
-  );
-
-  add_settings_field(
-    'pgc_settings_cache_time',
-    __('Cache time in minutes'),
-    'pgc_settings_cache_time_cb',
-    'pgc',
-    'pgc_settings_section');
-      
+  }      
 
 }
 
@@ -1060,18 +1100,7 @@ function pgc_validate_selected_calendar_ids($input) {
 /**
  * Empty callback function
  */
-function pgc_settings_section_cb() {}
-
-/**
-* Callback function to show cache time input.
-**/
-function pgc_settings_cache_time_cb() {
-  $cacheTime = get_option('pgc_cache_time');
-  ?>
-    <input type="number" name="pgc_cache_time" id="pgc_cache_time" value="<?php echo esc_attr($cacheTime); ?>" />
-    <p><em>Set to 0 to disable cache.</em></p>
-  <?php
-}
+function pgc_settings_empty_cb() {}
 
 /**
  * Callback function to show calendar list checkboxes in admin.
@@ -1479,7 +1508,11 @@ class Pgc_Calendar_Widget extends WP_Widget {
     </script>
 
       <p>
-      <strong class="pgc-calendar-widget-row">Calendar selection</strong>
+      <strong class="pgc-calendar-widget-row">Private calendars</strong>
+      <?php if (empty($calendarListByKey)) { ?>
+        <em>No private calendars</em>
+      </p>
+      <?php } else { ?>
       <?php foreach($calendarListByKey as $calId => $calInfo) { ?>
         <label class="pgc-calendar-widget-row">
         <input type="checkbox" class="pgc_widget_private_calendar"
@@ -1490,6 +1523,8 @@ class Pgc_Calendar_Widget extends WP_Widget {
       <?php } ?>
       </p>
       <p><em>Note: no selection means all calendars.</em></p>
+      <?php } ?>
+
 
       <p>
       <strong class="pgc-calendar-widget-row">Public calendar</strong>
