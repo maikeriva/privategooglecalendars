@@ -138,11 +138,15 @@ registerBlockType('pgc-plugin/calendar', {
             }
         };
 
-        const calendarList = Object.keys(window.pgc_selected_calendars).map((id) => {
-            const calendar = window.pgc_selected_calendars[id];
-            return <CheckboxControl disabled={isPublic} style={{backgroundColor: calendar.backgroundColor}} className="pgc-sidebar-row" onChange={onCalendarSelectionChange.bind(id)}
-                label={calendar.summary} checked={(id in calendars) && calendars[id]} />
-        });
+        let calendarList = null;
+        if (!isPublic) {
+            calendarList = Object.keys(window.pgc_selected_calendars).map((id) => {
+                const calendar = window.pgc_selected_calendars[id];
+                return <CheckboxControl disabled={isPublic} style={{backgroundColor: calendar.backgroundColor}} className="pgc-sidebar-row" onChange={onCalendarSelectionChange.bind(id)}
+                    label={calendar.summary} checked={(id in calendars) && calendars[id]} />
+            });
+            calendarList.push(<HorizontalRule />);
+        }
 
         const eventPopupList = [
             ["eventpopup", "Show event popup"],
@@ -221,12 +225,11 @@ registerBlockType('pgc-plugin/calendar', {
 
         return (
             <Fragment>
-                <InspectorControls>    
+                <InspectorControls>
                     <PanelBody
                         title={"Selected calendars (" + (isPublic ? "Public" : (selectedCalendarCount === 0 ? "All" : selectedCalendarCount)) + ")"}
                         initialOpen={true}>
                         {calendarList}
-                        <HorizontalRule />
                         <CheckboxControl className="pgc-sidebar-row" onChange={onPublicChange}
                             label="Public calendar(s)" checked={isPublic} />
                     </PanelBody>

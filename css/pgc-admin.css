@@ -45,3 +45,12 @@ a.pgc-link {
 .pgc_small_numeric_input {
   width:60px;
 }
+
+.pgc-calendar-codearea {
+  font-family: monospace;
+}
+
+.pgc-calendar-widget-row {
+  display:block;
+  margin-bottom:.1rem;
+}

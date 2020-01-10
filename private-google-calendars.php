@@ -1151,7 +1151,7 @@ function pgc_check_redirect_uri($decodedClientSecret) {
 * @return string
 */
 function getPrettyJSONString($jsonObject) {
-  return json_encode($jsonObject, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+  return str_replace("    ", "  ", json_encode($jsonObject, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 }
 
 /**
@@ -1429,6 +1429,7 @@ class Pgc_Calendar_Widget extends WP_Widget {
     $popupCheckboxId = $this->get_field_id('eventpopup');
     $hidepassedCheckboxId = $this->get_field_id('hidepassed');
     $hidefutureCheckboxId = $this->get_field_id('hidefuture');
+    $publicCalendarIdsAreaId = $this->get_field_id('publiccalendarids');
     
     $publicCheckboxId = $this->get_field_id('public');
 
@@ -1447,23 +1448,13 @@ class Pgc_Calendar_Widget extends WP_Widget {
         });
       };
 
-      window.onHidepassedCheckboxClick = function(el) {
-        el = el || this;
-        var input = document.querySelector("label[data-linked-id='" + el.id + "']");
-        if (el.checked) {
-            input.style.visibility = 'visible';
+      window.onHidefuturePassedCheckboxClick = function(input) {
+        input = input || this;
+        var el = document.querySelector("label[data-linked-id='" + input.id + "']");
+        if (input.checked) {
+            el.style.display = 'block';
           } else {
-            input.style.visibility = 'hidden';
-          }
-      };
-
-      window.onHidefutureCheckboxClick = function(el) {
-        el = el || this;
-        var input = document.querySelector("label[data-linked-id='" + el.id + "']");
-        if (el.checked) {
-            input.style.visibility = 'visible';
-          } else {
-            input.style.visibility = 'hidden';
+            el.style.display = 'none';
           }
       };
 
@@ -1488,120 +1479,117 @@ class Pgc_Calendar_Widget extends WP_Widget {
     </script>
 
       <p>
-      <div><strong>Calendar selection</strong></div>
+      <strong class="pgc-calendar-widget-row">Calendar selection</strong>
       <?php foreach($calendarListByKey as $calId => $calInfo) { ?>
-        <label>
+        <label class="pgc-calendar-widget-row">
         <input type="checkbox" class="pgc_widget_private_calendar"
         <?php checked(in_array($calId, $thisCalendaridsValue), true, true); ?>
         name="<?php echo $this->get_field_name('thiscalendarids'); ?>[]"
         value="<?php echo $calId; ?>" />
         <?php _e($calInfo['summary']); ?></label>
-        <br>
       <?php } ?>
-      <div><em>Note: no selection means all calendars.</em></div>
       </p>
+      <p><em>Note: no selection means all calendars.</em></p>
 
       <p>
-      <div><strong>Public calendar</strong></div>
-      <label for="<?php echo $publicCheckboxId; ?>"><input type="checkbox"
+      <strong class="pgc-calendar-widget-row">Public calendar</strong>
+      <label class="pgc-calendar-widget-row" for="<?php echo $publicCheckboxId; ?>"><input type="checkbox"
           <?php checked($publicValue, true, true); ?>
           id="<?php echo $publicCheckboxId; ?>"
           name="<?php echo $this->get_field_name('public'); ?>"
           onclick="window.onPublicCheckboxClick(this);"
           value="true" />
-        <?php _e('Show public calendar'); ?></label><br>
-        <label data-linked-id="<?php echo $publicCheckboxId; ?>">Enter comma separated list of calendar ID's:<br>
-        <input type="text" name="<?php echo $this->get_field_name('publiccalendarids'); ?>"
-          id="<?php echo $this->get_field_id('publiccalendarids'); ?>"
-          value="<?php echo $publicCalendarids; ?>" /></label>
-        
+        <?php _e('Show public calendar'); ?></label>
+        <label class="pgc-calendar-widget-row" data-linked-id="<?php echo $publicCheckboxId; ?>">Enter comma separated list of calendar ID's:<br>
+        <textarea class="widefat pgc-calendar-codearea pgc-calendar-widget-row" name="<?php echo $this->get_field_name('publiccalendarids'); ?>"
+          id="<?php echo $publicCalendarIdsAreaId; ?>"
+        ><?php echo esc_html($publicCalendarids); ?></textarea></label>
       </p>
 
       <p>
-      <div><strong>Calendar options</strong></div>
-      <label for="<?php echo $this->get_field_id('filter'); ?>"><input type="checkbox"
+      <strong class="pgc-calendar-widget-row">Calendar options</strong>
+      <label class="pgc-calendar-widget-row" for="<?php echo $this->get_field_id('filter'); ?>"><input type="checkbox"
           <?php checked($filterValue, true, true); ?>
           id="<?php echo $this->get_field_id('filter'); ?>"
           name="<?php echo $this->get_field_name('filter'); ?>"
           value="true" />
         <?php _e('Show calendar filter'); ?></label>
-      <br>
-      <label for="<?php echo $hidepassedCheckboxId; ?>">      
+      
+      <label class="pgc-calendar-widget-row" for="<?php echo $hidepassedCheckboxId; ?>">      
       <input type="checkbox"
           <?php checked($hidepassedValue, true, true); ?>
           id="<?php echo $hidepassedCheckboxId; ?>"
           name="<?php echo $this->get_field_name('hidepassed'); ?>"
-          onclick="window.onHidepassedCheckboxClick(this);"
+          onclick="window.onHidefuturePassedCheckboxClick(this);"
           value="true" />
-        <?php _e('Hide passed events'); ?></label>
-        <label data-linked-id="<?php echo $hidepassedCheckboxId; ?>">more than <input min="0" class="pgc_small_numeric_input" type="number" name="<?php echo $this->get_field_name('hidepasseddays'); ?>"
+        <?php _e('Hide passed events...'); ?></label>
+        <label class="pgc-calendar-widget-row" data-linked-id="<?php echo $hidepassedCheckboxId; ?>">...more than <input min="0" class="pgc_small_numeric_input" type="number" name="<?php echo $this->get_field_name('hidepasseddays'); ?>"
           id="<?php echo $this->get_field_id('hidepasseddays'); ?>"
           value="<?php echo $hidepasseddaysValue; ?>" /> days ago</label>
-      <br>
-      <label for="<?php echo $hidefutureCheckboxId; ?>"><input type="checkbox"
+      <label class="pgc-calendar-widget-row" for="<?php echo $hidefutureCheckboxId; ?>"><input type="checkbox"
           <?php checked($hidefutureValue, true, true); ?>
           id="<?php echo $hidefutureCheckboxId; ?>"
           name="<?php echo $this->get_field_name('hidefuture'); ?>"
-          onclick="window.onHidefutureCheckboxClick(this);"
+          onclick="window.onHidefuturePassedCheckboxClick(this);"
           value="true" />
-        <?php _e('Hide future events'); ?></label>
-        <label data-linked-id="<?php echo $hidefutureCheckboxId; ?>">more than <input min="0" class="pgc_small_numeric_input" type="number" name="<?php echo $this->get_field_name('hidefuturedays'); ?>"
+        <?php _e('Hide future events...'); ?></label>
+        <label class="pgc-calendar-widget-row" data-linked-id="<?php echo $hidefutureCheckboxId; ?>">...more than <input min="0" class="pgc_small_numeric_input" type="number" name="<?php echo $this->get_field_name('hidefuturedays'); ?>"
           id="<?php echo $this->get_field_id('hidefuturedays'); ?>"
           value="<?php echo $hidefuturedaysValue; ?>" /> from now</label>
       </p>
 
       <p>
-      <div><strong>Event popup options</strong></div>
-      <label for="<?php echo $popupCheckboxId; ?>"><input type="checkbox"
+      <strong class="pgc-calendar-widget-row">Event popup options</strong>
+      <label class="pgc-calendar-widget-row" for="<?php echo $popupCheckboxId; ?>"><input type="checkbox"
           <?php checked($eventpopupValue, true, true); ?>
           id="<?php echo $popupCheckboxId; ?>"
           name="<?php echo $this->get_field_name('eventpopup'); ?>"
           value="true" onclick="window.onPgcPopupCheckboxClick(this);" />
         <?php _e('Show event popup'); ?></label>
-      <br>
-      <label for="<?php echo $this->get_field_id('eventlink'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
+      
+      <label class="pgc-calendar-widget-row" for="<?php echo $this->get_field_id('eventlink'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
           <?php checked($eventlinkValue, true, true); ?>
           id="<?php echo $this->get_field_id('eventlink'); ?>"
           name="<?php echo $this->get_field_name('eventlink'); ?>"
           value="true" />
         <?php _e('Show link to event in popup'); ?></label>
-      <br>
-      <label for="<?php echo $this->get_field_id('eventdescription'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
+      
+      <label class="pgc-calendar-widget-row" for="<?php echo $this->get_field_id('eventdescription'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
           <?php checked($eventdescriptionValue, true, true); ?>
           id="<?php echo $this->get_field_id('eventdescription'); ?>"
           name="<?php echo $this->get_field_name('eventdescription'); ?>"
           value="true" />
         <?php _e('Show description in popup'); ?></label>
-      <br>
-      <label for="<?php echo $this->get_field_id('eventlocation'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
+      
+      <label class="pgc-calendar-widget-row" for="<?php echo $this->get_field_id('eventlocation'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
           <?php checked($eventlocationValue, true, true); ?>
           id="<?php echo $this->get_field_id('eventlocation'); ?>"
           name="<?php echo $this->get_field_name('eventlocation'); ?>"
           value="true" />
         <?php _e('Show location in popup'); ?></label>
-      <br>
-      <label for="<?php echo $this->get_field_id('eventattachments'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
+      
+      <label class="pgc-calendar-widget-row" for="<?php echo $this->get_field_id('eventattachments'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
           <?php checked($eventattachmentsValue, true, true); ?>
           id="<?php echo $this->get_field_id('eventattachments'); ?>"
           name="<?php echo $this->get_field_name('eventattachments'); ?>"
           value="true" />
         <?php _e('Show attachments in popup'); ?></label>
-      <br>
-      <label for="<?php echo $this->get_field_id('eventattendees'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
+      
+      <label class="pgc-calendar-widget-row" for="<?php echo $this->get_field_id('eventattendees'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
           <?php checked($eventattendeesValue, true, true); ?>
           id="<?php echo $this->get_field_id('eventattendees'); ?>"
           name="<?php echo $this->get_field_name('eventattendees'); ?>"
           value="true" />
         <?php _e('Show attendees in popup'); ?></label>
-      <br>
-      <label for="<?php echo $this->get_field_id('eventcalendarname'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
+      
+      <label class="pgc-calendar-widget-row" for="<?php echo $this->get_field_id('eventcalendarname'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
           <?php checked($eventcalendarnameValue, true, true); ?>
           id="<?php echo $this->get_field_id('eventcalendarname'); ?>"
           name="<?php echo $this->get_field_name('eventcalendarname'); ?>"
           value="true" />
         <?php _e('Show calendar name in popup'); ?></label>
-      <br>
-      <label for="<?php echo $this->get_field_id('eventcreator'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
+      
+      <label class="pgc-calendar-widget-row" for="<?php echo $this->get_field_id('eventcreator'); ?>"><input data-linked-id="<?php echo $popupCheckboxId; ?>" type="checkbox"
           <?php checked($eventcreatorValue, true, true); ?>
           id="<?php echo $this->get_field_id('eventcreator'); ?>"
           name="<?php echo $this->get_field_name('eventcreator'); ?>"
@@ -1622,22 +1610,25 @@ class Pgc_Calendar_Widget extends WP_Widget {
     
     ?>
     <p>
-      <label for="<?php echo $this->get_field_id('config'); ?>"><?php _e('JSON config:'); ?></label>
+      <label class="pgc-calendar-widget-row" for="<?php echo $this->get_field_id('config'); ?>"><?php _e('FullCalendar JSON config:'); ?></label>
       <textarea
           name="<?php echo $this->get_field_name('config'); ?>"
           id="<?php echo $this->get_field_id('config'); ?>"
-          class="widefat" rows="10"
+          class="widefat pgc-calendar-codearea pgc-calendar-widget-row" rows="10"
           placeholder='<?php echo esc_attr(getPrettyJSONString($jsonExample)); ?>'
       ><?php echo esc_html($jsonValueTextarea); ?></textarea>
-      <p><?php printf(__('See for config options the <a target="__blank" href="%s">FullCalendar docs</a>.'), 'https://fullcalendar.io/docs/'); ?></p>
     </p>
+    <p><?php printf(__('See for config options the <a target="__blank" href="%s">FullCalendar docs</a>.'), 'https://fullcalendar.io/docs/'); ?></p>
     <script>
       (function($) {
 
         window.onPgcPopupCheckboxClick.call(document.getElementById("<?php echo $popupCheckboxId; ?>"));
-        window.onHidepassedCheckboxClick.call(document.getElementById("<?php echo $hidepassedCheckboxId; ?>"));
-        window.onHidefutureCheckboxClick.call(document.getElementById("<?php echo $hidefutureCheckboxId; ?>"));
+        window.onHidefuturePassedCheckboxClick.call(document.getElementById("<?php echo $hidepassedCheckboxId; ?>"));
+        window.onHidefuturePassedCheckboxClick.call(document.getElementById("<?php echo $hidefutureCheckboxId; ?>"));
         window.onPublicCheckboxClick.call(document.getElementById("<?php echo $publicCheckboxId; ?>"));
+
+        var publicCheckbox = document.getElementById("<?php echo $publicCheckboxId; ?>");
+        var publicCalendarIdsArea = document.getElementById("<?php echo $publicCalendarIdsAreaId; ?>");
 
         // Note that form() is called 2 times in the widget area: ont time closed
         // and one time opened if you have it in your sidebar.
@@ -1658,6 +1649,12 @@ class Pgc_Calendar_Widget extends WP_Widget {
             e.stopPropagation();
             e.preventDefault();
             alert("<?php _e("Invalid JSON. Solve it before saving."); ?>");
+            return false;
+          }
+          if (publicCheckbox.checked && !publicCalendarIdsArea.value) {
+            e.stopPropagation();
+            e.preventDefault();
+            alert("<?php _e("Enter at least 1 public calendar ID if you select the option public calendar(s)."); ?>");
             return false;
           }
         });
@@ -1685,7 +1682,7 @@ class Pgc_Calendar_Widget extends WP_Widget {
             this.value = value.substring(0, start)
               + "    "
               + value.substring(this.selectionEnd);
-            this.selectionStart = this.selectionEnd = start + 4;
+            this.selectionStart = this.selectionEnd = start + 2;
             e.preventDefault();
           }
         });
