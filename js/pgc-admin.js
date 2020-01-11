@@ -1,8 +1,4 @@
 (function(win, $) {
-
-  win.pgc_fire_help_tab_click = function() {
-    $('#contextual-help-link').click();
-  }
   
   win.pgc_on_submit = function() {
     var file = $("#pgc_client_secret");

@@ -12,11 +12,11 @@ Display multiple private Google Calendars
 
 == Description ==
 
-This plugin can display multiple private Google calendars with a shortcode or as a widget.
+This plugin can display multiple private (and public) Google calendars with a shortcode, Gutenberg block or as a widget.
 
 = Features =
 
-* Access to _private_ calendars by using OAuth2.
+* Access to _private_ (and public) calendars by using OAuth2 or an API key.
 * Adjustable caching - this can greatly improve the performance.
 * It uses the [FullCalendar](https://fullcalendar.io/) library to show the calendar and can be fully customized within the Gutenberg block, shorcode attributes and the widget settings.
 * Calendar filtering.
@@ -30,6 +30,10 @@ This plugin can display multiple private Google calendars with a shortcode or as
 
 == Frequently Asked Questions ==
 
+= Where can I find more information? =
+
+See the [website](https://blog.michielvaneerd.nl/private-google-calendars/) for more information.
+
 = How can I override the calendar look? =
 
 Create a child theme and enqueue a css file with a dependency on `pgc` for example:
@@ -42,7 +46,7 @@ This usually means you don't have a valid access or refresh token anymore. This 
 
 = I get an 'Error: redirect_uri_mismatch' error when I want to authorize =
 
-This means that you didn't add your current URL [YOURWEBSITE]/wp-admin/options-general.php?page=pgc to the authorized redirect URIs as explained in the Getting Started section of the Help tab in the Settings screen.
+This means that you didn't add your current URL [YOURWEBSITE]/wp-admin/options-general.php?page=pgc to the authorized redirect URIs. See the [website](https://blog.michielvaneerd.nl/private-google-calendars/) for more information.
 
 = W3 Total Cache =
 
@@ -57,6 +61,10 @@ wordpress/wp-content/plugins/private-google-calendars/lib/fullcalendar4/list/mai
 wordpress/wp-content/plugins/private-google-calendars/lib/fullcalendar4/timegrid/main.min.js`
 
 == Changelog ==
+
+= 20200111 =
+* Now also access to public calendars with an API key instead of more difficult to setup OAuth2
+* Small layout changes
 
 = 20200102 =
 * Gutenberg block implemented (you can use this instead of the shortcode)

@@ -3,14 +3,14 @@
 Plugin Name: Private Google Calendars
 Description: Display multiple private Google Calendars
 Plugin URI: http://blog.michielvaneerd.nl/private-google-calendars/
-Version: 20200102
+Version: 20200111
 Author: Michiel van Eerd
 Author URI: http://michielvaneerd.nl/
 License: GPL2
 */
 
 // Always set this to the same version as "Version" in header! Used for query parameters added to style and scripts.
-define('PGC_PLUGIN_VERSION', '20200102');
+define('PGC_PLUGIN_VERSION', '20200111');
 
 if (!class_exists('PGC_GoogleClient')) {
   require_once(plugin_dir_path(__FILE__) . 'lib/google-client.php');
@@ -488,9 +488,6 @@ function pgc_settings_page() {
       'manage_options',
       'pgc',
       'pgc_settings_page_html');
-  add_action('load-' . $page, 'pgc_admin_add_help_tab');
-  add_action('load-' . $page, 'pgc_admin_add_faq_tab');
-  add_action('load-' . $page, 'pgc_admin_add_shortcode_tab');
 }
 
 /**
@@ -504,7 +501,7 @@ function pgc_settings_page_html() {
   ?>
   <div class="wrap">
   <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
-  <p><?php _e('See the <a class="pgc-link" onclick="pgc_fire_help_tab_click()">Help</a> tab for information.'); ?></p>
+  <p><?php _e('See the <a class="pgc-link" href="https://blog.michielvaneerd.nl/private-google-calendars/" target="_blank">website</a> for information.'); ?></p>
   <?php
     
     $clientSecretError = '';
@@ -571,85 +568,6 @@ function pgc_settings_page_html() {
 }
 
 /**
- * Callback function to add faq help tab.
- */
- function pgc_admin_add_shortcode_tab() {
-  $screen = get_current_screen();
-  $screen->add_help_tab([
-    'id' => 'pgc_shortcode_tab',
-    'title' => __('Shortcode usage'),
-    'callback' => 'pgc_help_tab_shortcode'
-  ]);
-}
-
-/**
- * Callback function that outputs shortcode help tab.
- */
- function pgc_help_tab_shortcode() {
-  ?>
-  <p><?php printf(__('See <a href="%s" target="__blank">examples and options</a>.'), 'https://blog.michielvaneerd.nl/private-google-calendars/'); ?></p>
-  <?php
-}
-
-/**
- * Callback function to add faq help tab.
- */
-function pgc_admin_add_faq_tab() {
-  $screen = get_current_screen();
-  $screen->add_help_tab([
-    'id' => 'pgc_faq_tab',
-    'title' => __('FAQ'),
-    'callback' => 'pgc_help_tab_faq'
-  ]);
-}
-
-/**
- * Callback function that outputs faq help tab.
- */
-function pgc_help_tab_faq() {
-  ?>
-  <p><strong><?php _e('I get a \'Token has been expired or revoked\' error'); ?></strong></p>
-  <p><?php printf(__('This usually means you don\'t have a valid access or refresh token anymore. This can only be solved by manually revoke access on the Google <a href="%s" target="__blank">Permissions</a> page and remove all plugin data.'), 'https://myaccount.google.com/permissions'); ?></p>
-  <p><strong><?php _e('I get an \'Error: redirect_uri_mismatch\' error when I want to authorize'); ?></strong></p>
-  <p><?php printf(__('This means that you didn\'t add your current URL <code>%s</code> to the authorized redirect URIs as explained in the Getting Started section.'), admin_url('options-general.php?page=pgc')); ?></p>
-  <p><strong><?php _e('How can I override the calendar look?'); ?></strong></p>
-  <p><?php printf(__('Create a child theme and enqueue a css file with a dependency on <em>fullcalendar</em> for example:<br><code>%s</code>.'), 'wp_enqueue_style(\'fullcalendar-override\', get_stylesheet_directory_uri() . \'/fullcalendar-override.css\', [\'fullcalendar\']);'); ?></p>
-  <?php
-}
-
-/**
- * Callback function to add getting started help tab.
- */
-function pgc_admin_add_help_tab() {
-  $screen = get_current_screen();
-  $screen->add_help_tab([
-    'id' => 'pgc_help_tab',
-    'title' => __('Getting started'),
-    'callback' => 'pgc_help_tab_getting_started'
-  ]);
-}
-
-// TODO: add some examples of shorcode usage with attributes (nested!)
-// and also widget use.
-
-/**
- * Callback function that outputs getting started help tab.
- */
-function pgc_help_tab_getting_started() {
-  ?>
-  <ol>
-    <li><?php printf(__('First setup a Google project. <a target="__blank" href="%s">Read the instructions</a>.'), 'https://blog.michielvaneerd.nl/private-google-calendars/setup/'); ?></li>
-    <li><?php _e('If you only want to display public calendars, get an API KEY and enter it in the input field below and you\'re ready to go!'); ?></li>
-    <li><?php printf(__('If you want to display private calendars, make sure you use <code>%s</code> as the redirect URL in the Google project!'), admin_url('options-general.php?page=pgc')); ?></li>
-    <li><?php _e('Download the client secret and upload this file in step 1.'); ?></li>
-    <li><?php _e('Authorize the plugin to access the calendar(s) in step 2.'); ?></li>
-    <li><?php _e('Select the calendar(s) you want to display in step 3.'); ?></li>
-    <li><?php _e('Use the widget or the shortcode <code>[pgc]</code> to dispay the selected calendar(s).'); ?></li>
-  </ol>
-  <?php
-}
-
-/**
  * Outputs tools section.
  */
 function pgc_show_tools() {
@@ -665,7 +583,7 @@ function pgc_show_tools() {
 
   if (empty($clientSecretError) && !empty($accessToken) && !empty($refreshToken)) {
 
-    ?><h1><?php _e('Tools'); ?></h1><?php
+    ?><hr><h1><?php _e('Tools'); ?></h1><?php
   
   ?>
 
@@ -915,7 +833,7 @@ function pgc_delete_plugin_data($which = 'all') {
  * Helper function die die with different kind of errors.
  */
 function pgc_die($error = null) {
-  $backLink = '<br><br>See the <em>Help</em> tab for more information.<br><br><a href="' . admin_url('options-general.php?page=pgc') . '">Back</a>';
+  $backLink = '<br><br><a href="' . admin_url('options-general.php?page=pgc') . '">Back</a>';
   if (empty($error)) {
     wp_die(__('Unknown error') . $backLink);
   }
@@ -989,7 +907,9 @@ function pgc_settings_init() {
     add_settings_section(
       'pgc_settings_section_always',
       'General settings',
-      'pgc_settings_empty_cb', // leeg
+      function() {
+        ?>Settings for both private and public calendars.<?php
+      },
       'pgc'); // page, slug
 
       add_settings_section(
@@ -1003,9 +923,13 @@ function pgc_settings_init() {
       add_settings_section(
           'pgc_settings_section',
           'Private calendar settings',
-          function() {
-            ?><p>Access to private calendars requires a JSON secret.</p><?php
-          }, // leeg
+          function() use ($clientSecret) {
+            if (empty($clientSecret)) {
+              ?><p>Access to private calendars requires a JSON secret.</p><?php
+            } else {
+              // empty
+            }
+          },
           'pgc'); // page
 
   register_setting('pgc', 'pgc_api_key', [
