@@ -3,14 +3,14 @@
 Plugin Name: Private Google Calendars
 Description: Display multiple private Google Calendars
 Plugin URI: http://blog.michielvaneerd.nl/private-google-calendars/
-Version: 20200111
+Version: 20200112
 Author: Michiel van Eerd
 Author URI: http://michielvaneerd.nl/
 License: GPL2
 */
 
 // Always set this to the same version as "Version" in header! Used for query parameters added to style and scripts.
-define('PGC_PLUGIN_VERSION', '20200111');
+define('PGC_PLUGIN_VERSION', '20200112');
 
 if (!class_exists('PGC_GoogleClient')) {
   require_once(plugin_dir_path(__FILE__) . 'lib/google-client.php');
@@ -371,7 +371,7 @@ function pgc_ajax_get_calendar() {
       foreach ($thisCalendarids as $calId) {
         $calendarListByKey[$calId] = [
           'summary' => $calId,
-          'backgroundColor' => '#A0A0A0' // TODO: change randomly between multiple calendars!
+          'backgroundColor' => 'rgb(121, 134, 203)'
         ];
       }
     } else {
@@ -925,7 +925,9 @@ function pgc_settings_init() {
           'Private calendar settings',
           function() use ($clientSecret) {
             if (empty($clientSecret)) {
-              ?><p>Access to private calendars requires a JSON secret.</p><?php
+              ?>
+              <p class="pgc-notice"><?php printf(__('Note: Create a new project in de Google developer console <strong>and make sure you set <code>%s</code> as the authorized redirect URI!</strong>'), admin_url('options-general.php?page=pgc')); ?></p>
+              <?php
             } else {
               // empty
             }
@@ -940,12 +942,6 @@ function pgc_settings_init() {
       'show_in_rest' => false
     ]);
 
-    
-  
-  // TODO: move to separate section.
-  // Idea is that user can enter a public calendar ID inside shortcode, gutenberg block or widget and select "public" for it.
-  // That way every user can display their own public calendars.
-  // Alternative could be that the admin adds these allowed public calendars inside the admin backend.
   add_settings_field(
     'pgc_api_key',
     '<label for="pgc_api_key">API key</label>',

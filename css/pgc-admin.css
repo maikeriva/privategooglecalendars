@@ -54,3 +54,8 @@ a.pgc-link {
   display:block;
   margin-bottom:.1rem;
 }
+
+.pgc-notice {
+  background-color: sandybrown;
+  padding: 1rem;
+}
