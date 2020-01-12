@@ -304,7 +304,7 @@ class PGC_GoogleCalendarClient {
     return $parsed;
   }
 
-  public function getEventsPublic($calendarId, $params, $apiKey) {
+  public function getEventsPublic($calendarId, $params, $apiKey, $referer) {
     $url = str_replace('$calendarId', urlencode($calendarId), self::GOOGLE_CALENDAR_EVENTS_URI);
     // https://developers.google.com/google-apps/calendar/performance#partial-response
     $params['fields'] = "items(summary,description,start,end,htmlLink,creator,location,attendees,attachments)";
@@ -312,7 +312,10 @@ class PGC_GoogleCalendarClient {
     $result = PGC_GoogleClient_Request::doRequest(
       $url,
       $params,
-      'GET'
+      'GET',
+      [
+        'Referer: ' . $referer
+      ]
     );
     
     $parsed = !empty($result['items']) ? $result['items'] : [];

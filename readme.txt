@@ -62,6 +62,9 @@ wordpress/wp-content/plugins/private-google-calendars/lib/fullcalendar4/timegrid
 
 == Changelog ==
 
+= 20200113 =
+* Adding referer to public calendar calls to handle restrictions on API key.
+
 = 20200112 =
 * Now also access to public calendars with an API key instead of more difficult to setup OAuth2
 * Small layout changes

@@ -395,10 +395,11 @@ function pgc_ajax_get_calendar() {
 
     if (!empty($_POST['isPublic'])) {
       // Call public calendars with API key
+      $referer = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : null;
       $apiKey = get_option('pgc_api_key');
       $service = new PGC_GoogleCalendarClient(null);
       foreach ($thisCalendarids as $calendarId) {
-        $results[$calendarId] = $service->getEventsPublic($calendarId, $optParams, $apiKey);
+        $results[$calendarId] = $service->getEventsPublic($calendarId, $optParams, $apiKey, $referer);
       }
     } else {
       // Call private calendars with oauth token
