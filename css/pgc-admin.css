@@ -59,3 +59,7 @@ a.pgc-link {
   background-color: sandybrown;
   padding: 1rem;
 }
+
+.pgc-public-calendar-table td, .pgc-public-calendar-table th {
+  padding:0;
+}

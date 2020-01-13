@@ -62,6 +62,10 @@ wordpress/wp-content/plugins/private-google-calendars/lib/fullcalendar4/timegrid
 
 == Changelog ==
 
+= 20200114 =
+* You can now specify title and color for public calendars.
+* Bug in widget fixed: when no private calendar was selected in settings, all private calendars were displayed in the widget form.
+
 = 20200113 =
 * Adding referer to public calendar calls to handle restrictions on API key.
 

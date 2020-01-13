@@ -3,14 +3,14 @@
 Plugin Name: Private Google Calendars
 Description: Display multiple private Google Calendars
 Plugin URI: http://blog.michielvaneerd.nl/private-google-calendars/
-Version: 20200113
+Version: 20200114
 Author: Michiel van Eerd
 Author URI: http://michielvaneerd.nl/
 License: GPL2
 */
 
 // Always set this to the same version as "Version" in header! Used for query parameters added to style and scripts.
-define('PGC_PLUGIN_VERSION', '20200113');
+define('PGC_PLUGIN_VERSION', '20200114');
 
 if (!class_exists('PGC_GoogleClient')) {
   require_once(plugin_dir_path(__FILE__) . 'lib/google-client.php');
@@ -366,17 +366,18 @@ function pgc_ajax_get_calendar() {
     $transientItems = !empty($cacheTime) ? get_transient($transientKey) : false;
 
     $calendarListByKey = null;
-    if (!empty($_POST['isPublic'])) {
-      $calendarListByKey = [];
-      foreach ($thisCalendarids as $calId) {
-        $calendarListByKey[$calId] = [
-          'summary' => $calId,
-          'backgroundColor' => 'rgb(121, 134, 203)'
-        ];
-      }
-    } else {
-      $calendarListByKey = pgc_get_calendars_by_key($thisCalendarids);
-    }
+    //if (!empty($_POST['isPublic'])) {
+    //  $calendarListByKey = [];
+    //  foreach ($thisCalendarids as $calId) {
+    //    $calendarListByKey[$calId] = [
+    //      'summary' => $calId,
+    //      'backgroundColor' => 'rgb(121, 134, 203)'
+    //    ];
+    //  }
+    //} else {
+      $calendarListByKey = pgc_get_calendars_by_key($thisCalendarids, $_POST['isPublic']);
+    //}
+
 
     if ($transientItems !== false) {
       wp_send_json(['items' => $transientItems, 'calendars' => $calendarListByKey]);
@@ -462,8 +463,25 @@ function pgc_ajax_get_calendar() {
   }
 }
 
-function pgc_get_calendars_by_key($calendarIds) {
-  $calendarList = getDecoded('pgc_calendarlist', []);
+function pgc_get_calendars_by_key($calendarIds, $isPublic) {
+  $calendarList = $isPublic ? get_option('pgc_public_calendarlist') : getDecoded('pgc_calendarlist', []);
+  if (empty($calendarList)) {
+    $calendarList = [];
+  }
+  if ($isPublic) {
+    $calIdsKeys = [];
+    foreach ($calendarList as $cal) {
+      $calIdsKeys[$cal['id']] = true;
+    }
+    foreach ($calendarIds as $calId) {
+      if (array_key_exists($calId, $calIdsKeys)) continue;
+      $calendarList[] = [
+        'id' => $calId,
+        'summary' => $calId,
+        'backgroundColor' => 'rgb(121, 134, 203)'
+      ];
+    }
+  }
   //if (empty($calendarList)) {
   //  throw new Exception(PGC_ERRORS_NO_CALENDARS);
   //}
@@ -563,7 +581,7 @@ function pgc_settings_page_html() {
       method="post" id="pgc-settings-form" onsubmit="return pgc_on_submit();">
     <?php settings_fields('pgc'); ?>
     <?php do_settings_sections('pgc'); ?>
-    <?php submit_button(__('Save'), 'primary', 'pgc-settings-submit'); ?>
+    <?php submit_button(__('Save settings'), 'primary', 'pgc-settings-submit'); ?>
   </form>
   <?php
 }
@@ -935,13 +953,17 @@ function pgc_settings_init() {
           },
           'pgc'); // page
 
-  register_setting('pgc', 'pgc_api_key', [
-    'show_in_rest' => false,
-    //'sanitize_callback' => 'pgc_validate_client_secret_input'
+    register_setting('pgc', 'pgc_api_key', [
+      'show_in_rest' => false
     ]);
     register_setting('pgc', 'pgc_cache_time', [
       'show_in_rest' => false
     ]);
+    // Added in settings: id / name / backgroundcolor / color
+    register_setting('pgc', 'pgc_public_calendarlist', [
+      'show_in_rest' => false
+    ]);
+    
 
   add_settings_field(
     'pgc_api_key',
@@ -951,6 +973,35 @@ function pgc_settings_init() {
         ?>
         <input id="pgc_api_key" type="text" name="pgc_api_key" class="regular-text" value="<?php echo isset( $setting ) ? esc_attr( $setting ) : ''; ?>">
         <p class="description">If you only want to display public calendars, an API key is all you need.</p>
+        <?php
+    },
+    'pgc',
+    'pgc_settings_section_public'
+  );
+
+  add_settings_field(
+    'pgc_public_calendarlist',
+    '<label for="pgc_public_calendarlist">Public calendars</label>',
+    function() {
+        ?><table class="pgc-public-calendar-table"><tr><th>Calendar ID</th><th>Title</th><th>Color</th><th>Delete</th></tr><?php
+        $publicCalendars = get_option('pgc_public_calendarlist', []);
+        $counter = 0;
+        foreach ($publicCalendars as $publicCalendar) { ?>
+        <tr class="pgc-public-calendar-row" data-source-id="<?php echo esc_attr($publicCalendar['id']); ?>">
+          <td><input type="text" class="regular-text pgc-public-calendar-id" name="pgc_public_calendarlist[<?php echo $counter;?>][id]" value="<?php echo esc_attr($publicCalendar['id']); ?>" /></td>
+          <td><input type="text" class="regular-text pgc-public-calendar-title" name="pgc_public_calendarlist[<?php echo $counter;?>][summary]" value="<?php echo esc_attr($publicCalendar['summary']); ?>" /></td>
+          <td><input type="text" class="pgc-public-calendar-backgroundcolor" name="pgc_public_calendarlist[<?php echo $counter;?>][backgroundColor]" value="<?php echo esc_attr($publicCalendar['backgroundColor']); ?>" /></td>
+          <td><input type="checkbox" data-delete-target-id="<?php echo esc_attr($publicCalendar['id']); ?>" /></td>
+        </tr>
+        <?php $counter += 1; } ?>
+        <tr class="pgc-public-calendar-row">
+          <td><input type="text" class="regular-text" class="pgc-public-calendar-id" name="pgc_public_calendarlist[<?php echo $counter;?>][id]" value="" /></td>
+          <td><input type="text" class="regular-text" class="pgc-public-calendar-title" name="pgc_public_calendarlist[<?php echo $counter;?>][summary]" value="" /></td>
+          <td><input type="text" class="pgc-public-calendar-backgroundcolor" name="pgc_public_calendarlist[<?php echo $counter;?>][backgroundColor]" value="" /></td>
+          <td></td>
+        </tr>
+        </table>
+        <p class="description">Setup your public calendars here to display a title and background color. This is optional.</p>
         <?php
     },
     'pgc',
@@ -1310,8 +1361,6 @@ class Pgc_Calendar_Widget extends WP_Widget {
     }
 
     if ($isPublic === 'true') {
-      // If public, we can't use the selected private calendars, but we use the user enetered calendar IDs (comma separated list)
-      // TODO: trim whitespace?
       $thisCalendarids = array_map('trim', explode(',', $publicCalendarids));
     } else {
       if (is_string($thisCalendarids)) {
@@ -1372,7 +1421,11 @@ class Pgc_Calendar_Widget extends WP_Widget {
     $jsonValue = !empty($instance['config']) ? $instance['config'] : self::$defaultConfig;
     
     $allCalendarIds = get_option('pgc_selected_calendar_ids', []); // selected calendar ids
-    $calendarListByKey = pgc_get_calendars_by_key($allCalendarIds);
+    // Can also be an empty string.
+    if (empty($allCalendarIds)) {
+      $allCalendarIds = [];
+    }
+    $calendarListByKey = pgc_get_calendars_by_key($allCalendarIds, false);
     
     $thisCalendaridsValue = isset($instance['thiscalendarids']) ? $instance['thiscalendarids'] : [];
     
