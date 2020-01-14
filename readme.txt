@@ -62,6 +62,9 @@ wordpress/wp-content/plugins/private-google-calendars/lib/fullcalendar4/timegrid
 
 == Changelog ==
 
+= 20200116 =
+* Bug fixed: when start and end time of event are the same, the event.end is null. Now I use the event.start in that case.
+
 = 20200115 =
 * Bug when submitting settings where file select input was not correctly checked, now this check is disabled because we can also have public calendars.
 * Added a Plugin settings link to the plugin page.

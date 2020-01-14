@@ -207,6 +207,8 @@
       //},
       eventRender: function(info) {
 
+        console.log(info);
+
         if (showEventPopup) {
           var texts = ['<span class="pgc-popup-draghandle dashicons dashicons-screenoptions"></span><div class="pgc-popup-row pgc-event-title"><div class="pgc-popup-row-icon"><span></span></div><div class="pgc-popup-row-value">' + info.event.title + '</div></div>'];
 
@@ -215,13 +217,15 @@
             texts.push("All day</div></div>");
           } else {
             if (config.timeZone) {
+              // info.event.end can be null, for example when someone uses the same start and end time!
               texts.push(moment.tz(info.event.start, config.timeZone).format("LT")
                 + " - "
-                + moment.tz(info.event.end, config.timeZone).format("LT") + "</div></div>");
+                + moment.tz((info.event.end || info.event.start), config.timeZone).format("LT") + "</div></div>");
             } else {
+              // info.event.end can be null, for example when someone uses the same start and end time!
               texts.push(info.event.start.toLocaleTimeString(locale, {
                 timeStyle: "short"
-              }) + " - " + info.event.end.toLocaleTimeString(locale, {
+              }) + " - " + (info.event.end || info.event.start).toLocaleTimeString(locale, {
                 timeStyle: "short"
               }) + "</div></div>");
             }
