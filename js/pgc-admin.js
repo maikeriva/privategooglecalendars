@@ -4,16 +4,17 @@
   
   win.pgc_on_submit = function() {
 
-    var file = $("#pgc_client_secret");
-    if (file.length) {
-      file = file[0];
-      if ("files" in file) {
-        if (file[0].files.length === 0) {
-          alert('Select a file');
-          return false;
-        }
-      } 
-    }
+    // TODO: Not used anymore, because we also have public API key.
+    // var file = $("#pgc_client_secret");
+    // if (file.length) {
+    //   file = file[0];
+    //   if ("files" in file) {
+    //     if (file.files.length === 0) {
+    //       alert('Select a file');
+    //       return false;
+    //     }
+    //   } 
+    // }
 
     // Public calendars
     document.querySelectorAll("input[data-delete-target-id]").forEach(function(input) {

@@ -3,14 +3,14 @@
 Plugin Name: Private Google Calendars
 Description: Display multiple private Google Calendars
 Plugin URI: http://blog.michielvaneerd.nl/private-google-calendars/
-Version: 20200114
+Version: 20200115
 Author: Michiel van Eerd
 Author URI: http://michielvaneerd.nl/
 License: GPL2
 */
 
 // Always set this to the same version as "Version" in header! Used for query parameters added to style and scripts.
-define('PGC_PLUGIN_VERSION', '20200114');
+define('PGC_PLUGIN_VERSION', '20200115');
 
 if (!class_exists('PGC_GoogleClient')) {
   require_once(plugin_dir_path(__FILE__) . 'lib/google-client.php');
@@ -51,6 +51,25 @@ function pgc_shortcodes_init() {
   if (function_exists('register_block_type')) {
     pgc_register_block();
   }
+}
+
+if (is_admin()) {
+  $plugin = plugin_basename(__FILE__);
+  add_filter('plugin_action_links_' . $plugin, 'pgc_add_plugin_settings_links');
+  add_filter('network_admin_plugin_action_links_' . $plugin, 'pgc_add_plugin_settings_links');
+}
+
+function pgc_add_plugin_settings_links($links) {
+  if (!is_network_admin()) {
+    $link = '<a href="options-general.php?page=pgc">'.__('Plugin settings').'</a>';
+    array_unshift($links, $link);
+  } else {
+    // switch_to_blog(1);
+    $link = '<a href="' . admin_url('options-general.php').'?page=pgc">' . __('Plugin settings').'</a>';
+    // restore_current_blog();
+    array_unshift($links, $link);
+  }
+  return $links;
 }
 
 function pgc_register_block() {

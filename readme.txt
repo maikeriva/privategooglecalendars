@@ -62,6 +62,10 @@ wordpress/wp-content/plugins/private-google-calendars/lib/fullcalendar4/timegrid
 
 == Changelog ==
 
+= 20200115 =
+* Bug when submitting settings where file select input was not correctly checked, now this check is disabled because we can also have public calendars.
+* Added a Plugin settings link to the plugin page.
+
 = 20200114 =
 * You can now specify title and color for public calendars.
 * Bug in widget fixed: when no private calendar was selected in settings, all private calendars were displayed in the widget form.
