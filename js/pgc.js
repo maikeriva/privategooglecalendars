@@ -207,8 +207,6 @@
       //},
       eventRender: function(info) {
 
-        console.log(info);
-
         if (showEventPopup) {
           var texts = ['<span class="pgc-popup-draghandle dashicons dashicons-screenoptions"></span><div class="pgc-popup-row pgc-event-title"><div class="pgc-popup-row-icon"><span></span></div><div class="pgc-popup-row-value">' + info.event.title + '</div></div>'];
 
