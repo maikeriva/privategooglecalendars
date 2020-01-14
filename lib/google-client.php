@@ -64,8 +64,20 @@ class PGC_GoogleClient_Request {
     $result = file_get_contents($url, false, $context);
     
     if (empty($result)) {
-      throw new PGC_GoogleClient_RequestException('Request failed.');
+      // Try with cURL method if available
+      $curlHandle = curl_init();
+      if ($curlHandle === FALSE){
+        throw new PGC_GoogleClient_RequestException('Request failed (could not attempt cURL method)');
+      }
+      curl_setopt($curlHandle, CURLOPT_URL, $url);
+      curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
+      $result = curl_exec($curlHandle);
+      curl_close($curlHandle);
+      if (empty($result)) {
+        throw new PGC_GoogleClient_RequestException('Request failed.');
+      }
     }
+
     $decodedResult = json_decode($result, true);
     if (is_null($decodedResult)) {
       throw new PGC_GoogleClient_RequestException('Response is invalid JSON.', 0, $result);
